@@ -1,24 +1,40 @@
-import { Badge, Button } from "@chakra-ui/react";
-import { invoke } from "@tauri-apps/api";
-import { MouseEventHandler, useState } from "react";
+import { Badge, Box, Button, Flex, Heading, Text } from "@chakra-ui/react";
+import useMnemonics from "./hooks/use-mnemonics.ts";
+import Loading from "./components/loading.tsx";
+import Error from "./components/error.tsx";
 
 function App() {
-  // useRu
-  const [msg, setMsg] = useState<string>();
+  const mnemonics = useMnemonics();
+  if (mnemonics.isLoading) {
+    return <Loading />;
+  }
+  if (mnemonics.error) {
+    return <Error error={mnemonics.error} />;
+  }
 
-  const cb: MouseEventHandler<HTMLButtonElement> = async () => {
-    let msg: string = await invoke("get_message");
-    setMsg(msg);
-  };
   return (
-    <div>
-      <Badge variant="solid">Example</Badge>
-      <Badge>Example</Badge>
-      <p>{msg}</p>
-      <Button variant="solid" onClick={cb}>
-        Get message
-      </Button>
-    </div>
+    <Flex p={3} flexDirection="column" justifyContent="space-between" h="100vh">
+      <Box>
+        <Heading>Your Recovery code</Heading>
+        <Text>
+          Please save your recovery code somewhere safe, this will be used to
+          generate the seed and the keys necessary to receive and spend coins.
+        </Text>
+        <Box py={2} gap={1} display="flex" flexWrap="wrap">
+          {mnemonics.data!.split(" ").map((v) => (
+            <Badge key={v} variant="solid" colorScheme="teal">
+              {v}
+            </Badge>
+          ))}
+        </Box>
+      </Box>
+      <Flex gap={2} justifyContent="flex-end" alignSelf="flex-end">
+        <Button colorScheme="teal" onClick={mnemonics.refetch}>
+          Regenerate
+        </Button>
+        <Button colorScheme="blue">Continue</Button>
+      </Flex>
+    </Flex>
   );
 }
 
