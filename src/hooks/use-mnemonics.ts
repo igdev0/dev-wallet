@@ -10,8 +10,11 @@ export default function useMnemonics() {
     },
     {
       refetchOnMount: true,
+      cacheTime: 0,
+      structuralSharing: false,
       onSuccess: (data) => {
         // return data.split(" ");
+        console.log(data.split(" ").length);
       },
     },
   );

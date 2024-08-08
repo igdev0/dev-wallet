@@ -14,21 +14,34 @@ function App() {
 
   return (
     <Flex p={3} flexDirection="column" justifyContent="space-between" h="100vh">
-      <Box>
-        <Heading>Your Recovery code</Heading>
-        <Text>
+      <Flex
+        // bg="black"
+        flex=".5"
+        flexDirection="column"
+        justifyContent="flex-end"
+      >
+        <Heading textAlign="center" mb={1}>
+          Your Recovery code
+        </Heading>
+        <Text mb={4} textAlign="center">
           Please save your recovery code somewhere safe, this will be used to
           generate the seed and the keys necessary to receive and spend coins.
         </Text>
-        <Box py={2} gap={1} display="flex" flexWrap="wrap">
-          {mnemonics.data!.split(" ").map((v) => (
-            <Badge key={v} variant="solid" colorScheme="teal">
+        <Box
+          py={2}
+          gap={1}
+          display="flex"
+          flexWrap="wrap"
+          justifyContent="center"
+        >
+          {mnemonics.data!.split(" ").map((v, i) => (
+            <Badge key={`${v}-${i}`} colorScheme="teal">
               {v}
             </Badge>
           ))}
         </Box>
-      </Box>
-      <Flex gap={2} justifyContent="flex-end" alignSelf="flex-end">
+      </Flex>
+      <Flex gap={2} justifyContent="center" alignSelf="flex-end">
         <Button colorScheme="teal" onClick={mnemonics.refetch}>
           Regenerate
         </Button>
