@@ -6,6 +6,7 @@ classDiagram
         id: UNIQUE UUID
         seed: encrypt(TEXT) 
         password: encrypt(TEXT)
+        created_at: TIMESTAMP
     }
 
     class Account {
@@ -14,6 +15,7 @@ classDiagram
         index: u32
         xpub: encrypt(pub_key + chain_code)
         xprv?: encrypt(prv_key + chain_code)
+        created_at: TIMESTAMP
     }
 
 
