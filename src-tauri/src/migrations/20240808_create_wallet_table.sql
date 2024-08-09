@@ -1,4 +1,4 @@
-CREATE TABLE wallets (
+CREATE TABLE IF NOT EXISTS wallets (
     id UUID PRIMARY KEY,
     seed TEXT NOT NULL,
     password TEXT NOT NULL,
