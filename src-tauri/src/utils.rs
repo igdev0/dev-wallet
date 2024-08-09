@@ -1,8 +1,6 @@
 use bip39::Mnemonic;
-use hex_literal::hex;
-use rand::{Rng, RngCore};
+use rand::RngCore;
 use rand_core::{self, OsRng};
-use sha2::{Digest, Sha256, Sha512};
 
 pub fn generate_mnemonic() -> Result<Mnemonic, bip39::Error> {
     // 1. Generate entropy (for 24 mnemonic words)
@@ -13,7 +11,6 @@ pub fn generate_mnemonic() -> Result<Mnemonic, bip39::Error> {
 
     let mut entropy = [0u8; 32];
     let mut rng = OsRng;
-    let a: u32 = 00010001000;
     rng.fill_bytes(&mut entropy);
     Mnemonic::from_entropy(&entropy)
 }
