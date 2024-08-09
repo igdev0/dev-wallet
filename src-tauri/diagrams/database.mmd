@@ -1,0 +1,25 @@
+classDiagram
+    Account --|> Wallet
+    Wallet --|> Utils
+    Account --|> Utils
+    class Wallet {
+        id: UNIQUE UUID
+        seed: encrypt(TEXT) 
+        password: encrypt(TEXT)
+    }
+
+    class Account {
+        id: UNIQUE UUID
+        wallet_id: Wallet(id)
+        index: u32
+        xpub: encrypt(pub_key + chain_code)
+        xprv?: encrypt(prv_key + chain_code)
+    }
+
+
+    class Utils {
+        encrypt(string)
+        decrypt(string)
+        generate_mnemonic()
+        derive_seed()
+    }
