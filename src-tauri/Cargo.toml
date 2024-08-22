@@ -15,7 +15,6 @@ tauri = { version = "1", features = ["shell-open"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 bip39 = "2.0.0"
-hmac-sha512 = "1.1.5"
 rand = "0.8.5"
 rand_core = "0.6.4"
 secp256k1 = "0.29.0"
@@ -24,6 +23,8 @@ hex-literal = "0.4.1"
 sqlx = { version = "0.7", features = ["runtime-tokio", "sqlite"] }
 tokio = { version = "1", features = ["full"] }
 async-std = { version = "1.12.0", features = ["attributes", "tokio1"] }
+bip32 = "0.5.2"
+aes = "0.8.4"
 
 [features]
 # This feature is used for production builds or when a dev server is not specified, DO NOT REMOVE!!

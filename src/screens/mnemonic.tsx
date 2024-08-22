@@ -3,9 +3,13 @@ import useMnemonics from "../hooks/use-mnemonics.ts";
 import Loading from "../components/loading.tsx";
 import Error from "../components/error.tsx";
 import Screen from "../components/screen.tsx";
+import { useCallback } from "react";
+import { Link } from "react-router-dom";
 
 export default function MnemonicScreen() {
   const mnemonics = useMnemonics();
+
+  const handleContinue = useCallback(() => {}, []);
   if (mnemonics.isLoading) {
     return <Loading />;
   }
@@ -45,7 +49,9 @@ export default function MnemonicScreen() {
         <Button colorScheme="teal" onClick={mnemonics.refetch}>
           Regenerate
         </Button>
-        <Button colorScheme="blue">Continue</Button>
+        <Button colorScheme="blue" as={Link} to="/security">
+          Continue
+        </Button>
       </Flex>
     </Screen>
   );
