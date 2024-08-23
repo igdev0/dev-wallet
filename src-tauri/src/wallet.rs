@@ -1,35 +1,50 @@
+use crate::account::{Account, AccountBuilder, AccountType};
+use crate::storage::StorageMethods;
+use async_std::sync::Mutex;
+use bip32::{
+    secp256k1::{ecdsa::SigningKey, elliptic_curve::PublicKey, SecretKey},
+    DerivationPath, ExtendedPrivateKey, ExtendedPublicKey, PrivateKey,
+};
+use bip39::Mnemonic;
+use bitcoin::{hashes::sha256::Hash, taproot::NodeInfo, Address, NetworkKind, PubkeyHash};
+use sqlx::{any, SqliteConnection};
 use std::str::FromStr;
 
-use bip32::{secp256k1::ecdsa::SigningKey, ExtendedPrivateKey};
-use bip39::Mnemonic;
-
 pub struct Wallet {
-    mnemonic: String,
-    passphrase: String,
+    // We need the seed to create the master key
     seed: [u8; 64],
+    master: ExtendedPrivateKey<SecretKey>,
+    // We need the accounts field to store the keys a.k.a "accounts"
+    accounts: Mutex<Vec<Account>>,
+    network_kind: NetworkKind,
 }
 
 impl Wallet {
-    pub fn create_account_key(&self, path: &str) -> ExtendedPrivateKey<SigningKey> {
-        let child_xprv = bip32::XPrv::derive_from_path(self.seed, &path.parse().unwrap()).unwrap();
-        child_xprv
+    pub fn create_account(&self, account_type: AccountType) -> Account {
+        AccountBuilder::build()
     }
 
-    pub fn save(&self) {}
+    pub fn remove_account(&self) {}
+}
+
+impl StorageMethods for Wallet {
+    fn load(&self, db: SqliteConnection) {}
+
+    fn save(&self, db: SqliteConnection) {}
 }
 
 pub struct WalletBuilder {
     mnemonic: Option<String>,
-    xprv: Option<String>,
+    network_kind: Option<NetworkKind>,
     passphrase: Option<String>,
 }
 
 impl WalletBuilder {
     pub fn new(mnemonic: &str) -> WalletBuilder {
         WalletBuilder {
+            network_kind: Some(NetworkKind::Test),
             mnemonic: Some(mnemonic.to_string()),
             passphrase: Some("".to_string()),
-            xprv: Some("".to_string()),
         }
     }
 
@@ -41,16 +56,24 @@ impl WalletBuilder {
         self.mnemonic = Some(mnemonic);
     }
 
+    pub fn network_kind(&mut self, nk: NetworkKind) {
+        self.network_kind = Some(nk);
+    }
+
     pub fn build(mut self) -> Wallet {
         let passphrase = &self.passphrase.unwrap();
         let mnemonic = &self.mnemonic.unwrap();
         let seed = Mnemonic::from_str(&mnemonic)
             .unwrap()
             .to_seed(passphrase.to_string());
+
+        let master = bip32::ExtendedPrivateKey::new(seed).unwrap();
+
         Wallet {
-            mnemonic: mnemonic.to_string(),
-            passphrase: passphrase.to_string(),
             seed,
+            master,
+            network_kind: self.network_kind.unwrap(),
+            accounts: Mutex::new(Vec::new()),
         }
     }
 }
