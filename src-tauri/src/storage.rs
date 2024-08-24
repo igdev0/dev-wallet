@@ -4,8 +4,10 @@ pub enum ConnectionType {
     InMemory,
     OnDisk,
 }
+
+pub type DbFacadePool = Pool<Sqlite>;
 pub struct DbFacade {
-    pub pool: Pool<Sqlite>,
+    pub pool: DbFacadePool,
 }
 
 impl DbFacade {
@@ -30,18 +32,16 @@ impl DbFacade {
     }
 
     pub async fn migrate(&self) {
-        sqlx::migrate!()
-            .run(&self.pool)
-            .await
-            .expect("Unable to run the migrations");
+        sqlx::migrate!().run(&self.pool).await.unwrap()
+        // .expect("Unable to run the migrations");
     }
 }
 
 pub trait StorageMethods {
-    fn load(&self, db: SqliteConnection) {
+    async fn load(&self, db: &DbFacadePool) {
         // This function will provide the load functionality
     }
-    fn save(&self, db: SqliteConnection) {
+    async fn save(&self, db: &DbFacadePool) {
         // This function will provide the save functionality
     }
 }

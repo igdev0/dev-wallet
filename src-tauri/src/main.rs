@@ -1,7 +1,7 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 use bitcoin_wallet::{
-    storage::{self, DbFacade},
+    storage::{self, DbFacade, DbFacadePool},
     wallet::WalletBuilder,
 };
 use sqlx::{Pool, Sqlite, SqliteConnection};
@@ -12,7 +12,7 @@ use tauri::{Manager, State};
 
 struct AppState {
     mnemonics: Arc<Mutex<String>>,
-    db_pool: Arc<Mutex<Pool<Sqlite>>>,
+    db_pool: Arc<Mutex<DbFacadePool>>,
 }
 
 #[tauri::command]
