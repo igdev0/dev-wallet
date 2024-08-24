@@ -1,20 +1,18 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
-use bip32::Prefix;
-use bip39::Mnemonic;
-use bitcoin_wallet::{db, wallet::WalletBuilder};
-use sqlx::SqliteConnection;
-use std::{
-    str::FromStr,
-    sync::{Arc, Mutex},
+use bitcoin_wallet::{
+    storage::{self, DbFacade},
+    wallet::WalletBuilder,
 };
-use tauri::{App, Manager, State};
+use sqlx::{Pool, Sqlite, SqliteConnection};
+use std::sync::{Arc, Mutex};
+use tauri::{Manager, State};
 
 // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
 
 struct AppState {
     mnemonics: Arc<Mutex<String>>,
-    db_pool: Arc<Mutex<SqliteConnection>>,
+    db_pool: Arc<Mutex<Pool<Sqlite>>>,
 }
 
 #[tauri::command]
@@ -42,10 +40,12 @@ fn create_wallet(input: String, state: State<'_, AppState>) -> String {
 
 #[async_std::main]
 async fn main() {
-    let db_pool = db::create_db_connection().await.unwrap();
+    let db_pool = storage::DbFacade::new(None).await;
+    db_pool.migrate().await;
+
     let app_state = AppState {
         mnemonics: Arc::new(Mutex::new(String::from(""))),
-        db_pool: Arc::new(Mutex::new(db_pool)),
+        db_pool: Arc::new(Mutex::new(db_pool.pool)),
     };
 
     tauri::Builder::default()

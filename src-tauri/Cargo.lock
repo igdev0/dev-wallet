@@ -444,6 +444,7 @@ dependencies = [
  "sqlx",
  "tauri",
  "tauri-build",
+ "thiserror",
  "tokio",
 ]
 
