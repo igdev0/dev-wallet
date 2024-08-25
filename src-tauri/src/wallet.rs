@@ -1,28 +1,19 @@
 use crate::account::{Account, AccountBuilder, AccountType};
-use crate::storage::{DbFacadePool, StorageMethods};
+use crate::storage::DbFacadePool;
+use crate::WalletError;
 use async_std::sync::Mutex;
-use bip32::Prefix;
-use bip32::{
-    secp256k1::{ecdsa::SigningKey, elliptic_curve::PublicKey, SecretKey},
-    DerivationPath, ExtendedPrivateKey, ExtendedPublicKey, PrivateKey,
-};
 use bip39::Mnemonic;
 use bitcoin::hex::{Case, DisplayHex};
-use bitcoin::{hashes::sha256::Hash, taproot::NodeInfo, Address, NetworkKind, PubkeyHash};
-use sqlx::database::HasArguments;
-use sqlx::{any, SqliteConnection};
-use std::borrow::Borrow;
+use sqlx::Row;
 use std::str::FromStr;
 
 pub struct Wallet {
     // We need the seed to create the master key
-    name: String,
-    seed: [u8; 64],
-    master: ExtendedPrivateKey<SecretKey>,
+    pub name: String,
+    seed: String,
     // We need the accounts field to store the keys a.k.a "accounts"
     accounts: Mutex<Vec<Account>>,
-    passphrase: String,
-    network_kind: NetworkKind,
+    passphrase: Option<String>,
 }
 
 impl Wallet {
@@ -31,30 +22,34 @@ impl Wallet {
     }
 
     pub fn remove_account(&self) {}
-}
-
-impl StorageMethods for Wallet {
-    async fn load(&self, db: &DbFacadePool) {
+    pub async fn load(&self, db: &DbFacadePool) -> Result<Wallet, WalletError> {
         let result = sqlx::query("SELECT * from wallets WHERE name = ?;")
             .bind(&self.name)
-            .execute(db)
+            .fetch_one(db)
             .await;
 
         if let Ok(data) = result {
-            dbg!(data);
+            let wallet_name: String = data.get("name");
+            let seed: String = data.get("seed");
+            return Ok(Wallet {
+                name: wallet_name,
+                accounts: Mutex::new(Vec::new()),
+                passphrase: None,
+                seed,
+            });
         }
+        Err(WalletError::NotFound)
     }
 
-    async fn save(&self, db: &DbFacadePool) {
+    pub async fn authenticate() {}
+
+    pub async fn save(&self, db: &DbFacadePool) {
         let id = uuid::Uuid::new_v4().to_string();
-        let master = self.master.to_string(Prefix::XPRV);
-        let master = master.as_str();
-        let password = &self.passphrase;
-        sqlx::query("INSERT into wallets (id, name, seed, master, password) values(?,?,?,?,?);")
+        let password = &self.passphrase.as_ref().unwrap();
+        sqlx::query("INSERT into wallets (id, name, seed, password) values(?,?,?,?);")
             .bind(id)
             .bind(self.name.clone())
-            .bind(self.seed.to_hex_string(Case::Lower))
-            .bind(master)
+            .bind(&self.seed)
             .bind(password)
             .execute(db)
             .await
@@ -65,7 +60,6 @@ impl StorageMethods for Wallet {
 pub struct WalletBuilder {
     name: Option<String>,
     mnemonic: Option<String>,
-    network_kind: Option<NetworkKind>,
     passphrase: Option<String>,
 }
 
@@ -73,9 +67,17 @@ impl WalletBuilder {
     pub fn new(mnemonic: &str) -> WalletBuilder {
         WalletBuilder {
             name: Some("Default".to_string()),
-            network_kind: Some(NetworkKind::Test),
             mnemonic: Some(mnemonic.to_string()),
             passphrase: Some("".to_string()),
+        }
+    }
+
+    pub fn from_existing(name: &str) -> Wallet {
+        Wallet {
+            name: name.to_string(),
+            accounts: Mutex::new(Vec::new()),
+            passphrase: Some("".to_string()),
+            seed: "".to_string(),
         }
     }
 
@@ -91,10 +93,6 @@ impl WalletBuilder {
         self.name = Some(name);
     }
 
-    pub fn network_kind(&mut self, nk: NetworkKind) {
-        self.network_kind = Some(nk);
-    }
-
     pub fn build(self) -> Wallet {
         let passphrase = self.passphrase.unwrap();
         let mnemonic = &self.mnemonic.unwrap();
@@ -102,14 +100,12 @@ impl WalletBuilder {
             .unwrap()
             .to_seed(passphrase.to_string());
 
-        let master = bip32::ExtendedPrivateKey::new(seed).unwrap();
-
+        // let master_parsed = master;
         Wallet {
             name: self.name.unwrap(),
-            seed,
-            master,
-            passphrase: passphrase,
-            network_kind: self.network_kind.unwrap(),
+            seed: seed.to_hex_string(Case::Lower),
+            // master: master_parsed.clone().to_string(),
+            passphrase: Some(passphrase),
             accounts: Mutex::new(Vec::new()),
         }
     }

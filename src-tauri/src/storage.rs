@@ -36,12 +36,3 @@ impl DbFacade {
         // .expect("Unable to run the migrations");
     }
 }
-
-pub trait StorageMethods {
-    async fn load(&self, db: &DbFacadePool) {
-        // This function will provide the load functionality
-    }
-    async fn save(&self, db: &DbFacadePool) {
-        // This function will provide the save functionality
-    }
-}
