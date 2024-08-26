@@ -1,4 +1,4 @@
-use bip32::{DerivationPath, PublicKey, XPrv};
+use bip32::{DerivationPath, PublicKey, Seed, XPrv};
 use bitcoin::{hashes::Hash, Address, CompressedPublicKey, Network, PubkeyHash};
 use sqlx::{Pool, Sqlite};
 use std::str::FromStr;

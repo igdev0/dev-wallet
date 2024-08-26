@@ -1,4 +1,5 @@
-use crate::account::{Account, AccountBuilder};
+use crate::account::{Account, AccountBuilder, AccountType};
+use crate::path_builder::PathBuilder;
 use crate::storage::DbFacadePool;
 use crate::WalletError;
 use async_std::sync::Mutex;
@@ -17,7 +18,7 @@ pub struct Wallet {
 }
 
 impl Wallet {
-    pub fn build_account(&self) -> AccountBuilder {
+    pub fn create_account(&self) -> AccountBuilder {
         // let account = AccountBuilder::
         let mut account_builder = AccountBuilder::new();
         account_builder.seed(&self.seed);
