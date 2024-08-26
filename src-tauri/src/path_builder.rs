@@ -85,8 +85,8 @@ impl PathBuilder {
         let purpose = self.purpose();
         let coin_type = self.coin_type();
         let account_index = ChildNumber::new(self.account_index, true).unwrap();
-        let change_index = ChildNumber::new(self.change_index, true).unwrap();
-        let index = ChildNumber::new(self.index, true).unwrap();
+        let change_index = ChildNumber::new(self.change_index, false).unwrap();
+        let index = ChildNumber::new(self.index, false).unwrap();
 
         DerivationPath::from_str(
             format!(
