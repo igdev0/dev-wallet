@@ -51,5 +51,5 @@ fn can_create_account() {
     let mnemonic = mnemonic_helper();
     let mut wallet = WalletBuilder::new(&mnemonic.to_string());
     wallet.passphrase(String::from("StrongPassphrase"));
-    wallet.build();
+    let wallet = wallet.build();
 }

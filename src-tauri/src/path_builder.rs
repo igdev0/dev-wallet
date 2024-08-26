@@ -5,12 +5,12 @@ use bitcoin::{Network, NetworkKind};
 
 use crate::WalletError;
 
-enum AddressType {
+pub enum AddressType {
     Receiving,
     Spending,
 }
 
-enum PathAddressKind {
+pub enum PathAddressKind {
     Legacy,       // P2PKH
     SegWit,       // P2SH-P2WPKH
     NativeSegWit, // P2WPKH
