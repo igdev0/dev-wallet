@@ -51,9 +51,9 @@ impl AddressType_ for DerivationPath {
 
 pub struct Account {
     // "path" is a string that contains the path for the derived key e.g: m/44/0'/0'/0'/1
-    path: String,
-    index: u32,
-    address: String,
+    pub path: String,
+    pub index: u32,
+    pub address: String,
 }
 
 impl Account {
