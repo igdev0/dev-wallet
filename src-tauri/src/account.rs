@@ -3,7 +3,7 @@ use bitcoin::{hashes::Hash, Address, CompressedPublicKey, Network, PubkeyHash};
 use sqlx::{Pool, Sqlite};
 use std::str::FromStr;
 
-use crate::{storage::DbFacadePool, WalletError};
+use crate::{path_builder::PathBuilder, storage::DbFacadePool, WalletError};
 
 pub enum AccountType {
     Receiving,
@@ -67,12 +67,12 @@ impl Account {
     }
 
     async fn save(&self, db: &DbFacadePool) {
-        // let a = 
+        // let a =
     }
 }
 
 pub struct AccountBuilder {
-    path: Option<String>,
+    path: DerivationPath,
     index: Option<u32>,
     network: Network,
     seed: Option<[u8; 64]>,
@@ -85,12 +85,12 @@ impl AccountBuilder {
             index: Some(0),
             network: Network::Testnet,
             address: None,
-            path: None,
+            path: PathBuilder::new().build(),
             seed: None,
         }
     }
-    pub fn path(&mut self, path: String) {
-        self.path = Some(path);
+    pub fn path(&mut self, path: DerivationPath) {
+        self.path = path
     }
     pub fn seed<'a>(&mut self, seed: &'a str) {
         let s = seed.as_bytes();
@@ -102,9 +102,7 @@ impl AccountBuilder {
     }
 
     pub fn build(self) -> Result<Account, WalletError> {
-        let path = &self.path.unwrap();
-        let path = path.as_ref();
-        let path = bip32::DerivationPath::from_str(path).unwrap();
+        let path = &self.path;
         let xprv = XPrv::derive_from_path(&self.seed.unwrap(), &path)
             .expect("Unable to derive from given path");
         let xpub = xprv.public_key();
