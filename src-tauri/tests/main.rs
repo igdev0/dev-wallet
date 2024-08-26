@@ -1,6 +1,7 @@
 use async_std::task::AccessError;
 use bip39::Mnemonic;
 use bitcoin_wallet::{
+    path_builder::PathBuilder,
     storage::{self},
     wallet::WalletBuilder,
 };
@@ -52,4 +53,13 @@ fn can_create_account() {
     let mut wallet = WalletBuilder::new(&mnemonic.to_string());
     wallet.passphrase(String::from("StrongPassphrase"));
     let wallet = wallet.build();
+}
+
+#[test]
+
+fn can_build_bip32_path() {
+    let path = PathBuilder::new();
+    let path = path.build().to_string();
+
+    assert_eq!(path, "m/49'/0'/0'/0/0");
 }
