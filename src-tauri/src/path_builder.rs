@@ -1,9 +1,7 @@
 use std::str::FromStr;
 
 use bip32::{ChildNumber, DerivationPath};
-use bitcoin::{Network, NetworkKind};
-
-use crate::WalletError;
+use bitcoin::NetworkKind;
 
 pub enum AddressType {
     Receiving,
