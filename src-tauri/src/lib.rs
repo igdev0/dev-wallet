@@ -1,4 +1,5 @@
 mod account;
+pub mod path_builder;
 pub mod storage;
 pub mod utils;
 pub mod wallet;
