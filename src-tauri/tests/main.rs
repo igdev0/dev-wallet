@@ -99,9 +99,5 @@ async fn can_store_accounts_for_wallet() {
     let wallet = wallet.load(&conn_facade.pool).await.unwrap();
     let accounts_ref = Rc::clone(&wallet.accounts);
     let accounts_len = accounts_ref.borrow_mut().len();
-    // println!("{}")
-    // let a  = *accounts_ref.borrow();
-    // accs.into_inner()
-    // let a = accs.borrow();
     assert!(accounts_len > 0);
 }
