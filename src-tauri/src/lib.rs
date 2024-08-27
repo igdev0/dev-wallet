@@ -1,9 +1,13 @@
 pub mod account;
+pub mod config;
 pub mod path_builder;
 pub mod storage;
 pub mod utils;
 pub mod wallet;
 use thiserror::Error;
+
+#[macro_use]
+extern crate dotenv_codegen;
 
 #[derive(Error, Debug)]
 pub enum WalletError {
