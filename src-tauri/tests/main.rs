@@ -1,12 +1,12 @@
 use std::{borrow::Borrow, rc::Rc};
 
-use async_std::sync::Mutex;
 use bip39::Mnemonic;
 use bitcoin::hex::{Case, DisplayHex};
 use bitcoin_wallet::{
     account::AccountBuilder,
     path_builder::PathBuilder,
     storage::{self},
+    utils::{decrypt, encrypt},
     wallet::WalletBuilder,
 };
 use rand::RngCore;
@@ -100,4 +100,19 @@ async fn can_store_accounts_for_wallet() {
     let accounts_ref = Rc::clone(&wallet.accounts);
     let accounts_len = accounts_ref.borrow_mut().len();
     assert!(accounts_len > 0);
+}
+
+#[test]
+fn can_encrypt_and_decrypt_data() {
+    let key = [1u8; 32];
+
+    let text = b"Hello world";
+
+    let encrypted_data = encrypt(&key, text);
+
+    let decrypted = decrypt(&key, &encrypted_data);
+    println!("{}", &decrypted.to_hex_string(Case::Lower));
+    let decrypted = decrypted.to_hex_string(Case::Lower);
+    let text = text.to_hex_string(Case::Lower);
+    assert_eq!(text, decrypted);
 }

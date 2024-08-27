@@ -8,3 +8,5 @@
 
 database.db
 database.*
+
+.env

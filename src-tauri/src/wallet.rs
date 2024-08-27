@@ -4,12 +4,14 @@ use std::str::FromStr;
 
 use crate::account::{Account, AccountBuilder};
 
+use crate::config::Config;
 use crate::storage::DbFacadePool;
+use crate::utils::{decrypt, encrypt};
 use crate::WalletError;
-use async_std::sync::Mutex;
 
 use bip39::Mnemonic;
 use bitcoin::hex::{Case, DisplayHex};
+
 use sqlx::Row;
 
 pub struct Wallet {
@@ -32,7 +34,16 @@ impl Wallet {
     }
 
     pub fn remove_account(&self) {}
+
+    fn encrypted_seed(&self) -> String {
+        let config = Config::from_env();
+        let mut key = [0u8; 32];
+        key.copy_from_slice(config.database_key.as_bytes());
+        encrypt(&key, self.seed.as_bytes()).to_hex_string(Case::Lower)
+    }
+
     pub async fn load(&self, db: &DbFacadePool) -> Result<Wallet, WalletError> {
+        let config = Config::from_env();
         let result = sqlx::query("SELECT * from wallets WHERE name = ?;")
             .bind(&self.name)
             .fetch_one(db)
@@ -51,12 +62,15 @@ impl Wallet {
 
             let wallet_name: String = data.get("name");
             let seed: String = data.get("seed");
+            let mut key = [0u8; 32];
+            key.copy_from_slice(config.database_key.as_bytes());
+            let decoded_seed = hex::decode(seed).unwrap();
             return Ok(Wallet {
                 name: wallet_name,
                 id: Some(id),
                 accounts: Rc::new(RefCell::new(accounts)),
                 passphrase: None,
-                seed,
+                seed: decrypt(&key, &decoded_seed).to_hex_string(Case::Lower),
             });
         }
         Err(WalletError::NotFound)
@@ -70,7 +84,7 @@ impl Wallet {
         sqlx::query("INSERT into wallets (id, name, seed, password) values(?,?,?,?);")
             .bind(id)
             .bind(self.name.clone())
-            .bind(&self.seed)
+            .bind(&self.encrypted_seed())
             .bind(password)
             .execute(db)
             .await
