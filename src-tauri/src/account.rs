@@ -126,7 +126,7 @@ impl AccountBuilder {
         Ok(Account {
             address: address.to_string(),
             path: path.to_string(),
-            index: 0,
+            index: self.index.unwrap(),
         })
     }
 }
