@@ -1,6 +1,6 @@
 use std::str::FromStr;
 
-use bip32::{ChildNumber, DerivationPath};
+use bitcoin::bip32::{ChildNumber, DerivationPath};
 use bitcoin::NetworkKind;
 
 pub enum AddressType {
@@ -66,17 +66,19 @@ impl PathBuilder {
     pub fn coin_type(&self) -> String {
         match &self.network {
             SupportedNetworks::Bitcoin => match &self.network_kind {
-                NetworkKind::Main => ChildNumber::new(0, true).unwrap().to_string(),
-                NetworkKind::Test => ChildNumber::new(1, true).unwrap().to_string(),
+                NetworkKind::Main => ChildNumber::from_hardened_idx(0).unwrap().to_string(),
+                NetworkKind::Test => ChildNumber::from_hardened_idx(1).unwrap().to_string(),
             },
         }
     }
 
     fn purpose(&self) -> String {
         match self.address_kind {
-            PathAddressKind::Legacy => ChildNumber::new(44, true).unwrap().to_string(),
-            PathAddressKind::SegWit => ChildNumber::new(49, true).unwrap().to_string(),
-            PathAddressKind::NativeSegWit => ChildNumber::new(84, true).unwrap().to_string(),
+            PathAddressKind::Legacy => ChildNumber::from_hardened_idx(44).unwrap().to_string(),
+            PathAddressKind::SegWit => ChildNumber::from_hardened_idx(49).unwrap().to_string(),
+            PathAddressKind::NativeSegWit => {
+                ChildNumber::from_hardened_idx(84).unwrap().to_string()
+            }
         }
     }
 
@@ -84,9 +86,9 @@ impl PathBuilder {
         // Add purpose
         let purpose = self.purpose();
         let coin_type = self.coin_type();
-        let account_index = ChildNumber::new(self.account_index, true).unwrap();
-        let change_index = ChildNumber::new(self.change_index, false).unwrap();
-        let index = ChildNumber::new(self.index, false).unwrap();
+        let account_index = ChildNumber::from_hardened_idx(self.account_index).unwrap();
+        let change_index = ChildNumber::from_normal_idx(self.change_index).unwrap();
+        let index = ChildNumber::from_normal_idx(self.index).unwrap();
 
         DerivationPath::from_str(
             format!(

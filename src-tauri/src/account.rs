@@ -1,7 +1,7 @@
-use bip32::{DerivationPath, PublicKey, Seed, XPrv};
-use bitcoin::{hashes::Hash, Address, CompressedPublicKey, Network, PubkeyHash};
-use sqlx::{Pool, Sqlite};
-use std::str::FromStr;
+use bitcoin::{
+    bip32::{DerivationPath, Xpriv},
+    secp256k1, Address, CompressedPublicKey, Network, NetworkKind, PrivateKey, PubkeyHash,
+};
 
 use crate::{path_builder::PathBuilder, storage::DbFacadePool, WalletError};
 
@@ -75,7 +75,8 @@ pub struct AccountBuilder {
     path: DerivationPath,
     index: Option<u32>,
     network: Network,
-    seed: Option<[u8; 64]>,
+    network_kind: NetworkKind,
+    seed: Vec<u8>,
     address: Option<String>,
 }
 
@@ -84,9 +85,10 @@ impl AccountBuilder {
         AccountBuilder {
             index: Some(0),
             network: Network::Testnet,
+            network_kind: NetworkKind::Test,
             address: None,
             path: PathBuilder::new().build(),
-            seed: None,
+            seed: Vec::new(),
         }
     }
     pub fn path(&mut self, path: DerivationPath) {
@@ -94,30 +96,36 @@ impl AccountBuilder {
     }
     pub fn seed<'a>(&mut self, seed: &'a str) {
         let s = seed.as_bytes();
-        self.seed.unwrap().copy_from_slice(&s);
+        self.seed.extend_from_slice(s);
     }
 
     pub fn index(mut self, index: u32) {
         self.index = Some(index);
     }
 
+    pub fn network_kind(mut self, network_kind: NetworkKind) {
+        self.network_kind = network_kind;
+    }
+
     pub fn build(self) -> Result<Account, WalletError> {
         let path = &self.path;
-        let xprv = XPrv::derive_from_path(&self.seed.unwrap(), &path)
-            .expect("Unable to derive from given path");
-        let xpub = xprv.public_key();
-        let pk = xpub.public_key().to_owned();
-        let pk_hash = PubkeyHash::hash(&pk.to_bytes());
-        let address = match path.address_type() {
-            AddressKind::Legacy => Ok(Address::p2pkh(pk_hash, self.network)),
-            AddressKind::NativeSegWit => {
-                let xprv = xprv.private_key();
-                let d = &xprv.to_bytes();
-                let c_pk = CompressedPublicKey::from_slice(&d)
-                    .expect("Failed while attempting to create compressed pub key from slice.");
+        let secp = secp256k1::Secp256k1::new();
+        let xprv = Xpriv::new_master(self.network_kind, &self.seed)
+            .expect("Unable to derive from given path")
+            .derive_priv(&secp, path)
+            .expect("failed deriving the private key from path");
 
-                Ok(Address::p2wpkh(&c_pk, self.network))
-            }
+        let pk = xprv.private_key.public_key(&secp);
+
+        let pk = PrivateKey::new(xprv.private_key, self.network);
+        let c_pk = CompressedPublicKey::from_private_key(&secp, &pk)
+            .expect("Failed while attempting to create compressed pub key from slice.");
+
+        let pkh = PubkeyHash::from(c_pk);
+
+        let address = match path.address_type() {
+            AddressKind::Legacy => Ok(Address::p2pkh(pkh, self.network)),
+            AddressKind::NativeSegWit => Ok(Address::p2wpkh(&c_pk, self.network)),
             AddressKind::Unknown => Err(WalletError::InvalidInput(path.to_string())),
             _ => Err(WalletError::InvalidInput(path.to_string())),
         };

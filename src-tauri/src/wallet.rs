@@ -1,12 +1,14 @@
-use crate::account::{Account, AccountBuilder, AccountType};
-use crate::path_builder::PathBuilder;
+use std::str::FromStr;
+
+use crate::account::{Account, AccountBuilder};
+
 use crate::storage::DbFacadePool;
 use crate::WalletError;
 use async_std::sync::Mutex;
+
 use bip39::Mnemonic;
 use bitcoin::hex::{Case, DisplayHex};
 use sqlx::Row;
-use std::str::FromStr;
 
 pub struct Wallet {
     // We need the seed to create the master key
@@ -104,11 +106,9 @@ impl WalletBuilder {
             .unwrap()
             .to_seed(passphrase.to_string());
 
-        // let master_parsed = master;
         Wallet {
             name: self.name.unwrap(),
             seed: seed.to_hex_string(Case::Lower),
-            // master: master_parsed.clone().to_string(),
             passphrase: Some(passphrase),
             accounts: Mutex::new(Vec::new()),
         }

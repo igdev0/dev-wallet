@@ -1,4 +1,4 @@
-use bip32::{Language, Mnemonic};
+use bip39::Mnemonic;
 use bitcoin::hex::{Case, DisplayHex};
 use bitcoin_wallet::{
     account::AccountBuilder,
@@ -13,7 +13,8 @@ fn mnemonic_helper() -> Mnemonic {
     let mut entropy = [0u8; 32];
     let mut rng = OsRng;
     rng.fill_bytes(&mut entropy);
-    let mnemonic = Mnemonic::from_entropy(entropy, Language::English);
+
+    let mnemonic = Mnemonic::from_entropy(&entropy).unwrap();
     mnemonic
 }
 
@@ -23,7 +24,7 @@ async fn create_wallet() {
     connection.migrate().await;
     let db = connection.pool;
     let mnemonic = mnemonic_helper();
-    let mut wallet = WalletBuilder::new(&mnemonic);
+    let mut wallet = WalletBuilder::new(&mnemonic.to_string());
     wallet.name("Main wallet".to_string());
 
     let wallet = wallet.build();
@@ -38,7 +39,7 @@ async fn load_wallet() {
 
     let mnemonic = mnemonic_helper();
 
-    let mut wallet = WalletBuilder::new(&mnemonic);
+    let mut wallet = WalletBuilder::new(&mnemonic.to_string());
     wallet.name("Main wallet".to_string());
     wallet.build().save(&conn_facade.pool).await;
 
@@ -51,7 +52,7 @@ async fn load_wallet() {
 #[test]
 fn can_create_account() {
     let mnemonic = mnemonic_helper();
-    let mut wallet = WalletBuilder::new(&mnemonic);
+    let mut wallet = WalletBuilder::new(&mnemonic.to_string());
     wallet.passphrase(String::from("StrongPassphrase"));
     let wallet = wallet.build();
 }
@@ -62,7 +63,7 @@ fn can_build_bip32_path() {
     let path = PathBuilder::new();
     let path = path.build().to_string();
 
-    assert_eq!(path, "m/49'/0'/0'/0/0");
+    assert_eq!(path, "49'/0'/0'/0/0");
 }
 #[test]
 fn can_build_account() {
@@ -71,7 +72,7 @@ fn can_build_account() {
     let seed = mnemonic.to_seed("passphrase");
     let mut account_builder = AccountBuilder::new();
 
-    account_builder.seed(&seed);
+    account_builder.seed(&seed.to_hex_string(Case::Lower));
 
     let account_result = account_builder.build();
 
