@@ -74,9 +74,9 @@ fn can_build_account() {
 
     account_builder.seed(&seed.to_hex_string(Case::Lower));
 
-    let account_result = account_builder.build();
+    let account = account_builder.build().unwrap();
+    println!("Address: {}", account.address);
+    println!("Address length: {}", account.address.len());
 
-    if let Ok(account) = account_result {
-        assert!(account.address.len() > 0);
-    }
+    dbg!(&account.address);
 }

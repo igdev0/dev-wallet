@@ -14,7 +14,6 @@ pub enum AddressKind {
     Legacy,       // P2PKH
     SegWit,       // P2SH-P2WPKH
     NativeSegWit, // P2WPKH
-    Unknown,
 }
 
 trait AddressType_ {
@@ -28,23 +27,20 @@ impl AddressType_ for DerivationPath {
         let path = &self.to_string();
         let parts: Vec<&str> = path.split('/').collect();
 
-        // Check if the path is valid (at least 5 components)
-        if parts.len() < 5 {
-            return AddressKind::Unknown;
-        }
-
         // Check if the first part is "m" (master key)
-        if parts[0] != "m" {
-            return AddressKind::Unknown;
-        }
+        // if parts[0] != "m" {
+        //     return AddressKind::Unknown;
+        // }
 
         // Match based on the purpose field (second part)
-        match parts[1] {
+        match parts[0] {
             "44'" => AddressKind::Legacy,
             "49'" => AddressKind::SegWit,
             "84'" => AddressKind::NativeSegWit,
             // "86'" => AddressKind::Taproot, // we don't support taproot just yet
-            _ => AddressKind::Unknown,
+            _ => {
+                panic!("Unable to parse address")
+            }
         }
     }
 }
@@ -84,8 +80,8 @@ impl AccountBuilder {
     pub fn new() -> Self {
         AccountBuilder {
             index: Some(0),
-            network: Network::Testnet,
-            network_kind: NetworkKind::Test,
+            network: Network::Bitcoin,
+            network_kind: NetworkKind::Main,
             address: None,
             path: PathBuilder::new().build(),
             seed: Vec::new(),
@@ -122,21 +118,15 @@ impl AccountBuilder {
         let pkh = PubkeyHash::from(c_pk);
 
         let address = match path.address_type() {
-            AddressKind::Legacy => Ok(Address::p2pkh(pkh, self.network)),
-            AddressKind::NativeSegWit => Ok(Address::p2wpkh(&c_pk, self.network)),
-            AddressKind::Unknown => Err(WalletError::InvalidInput(path.to_string())),
-            _ => Err(WalletError::InvalidInput(path.to_string())),
+            AddressKind::Legacy => Address::p2pkh(pkh, self.network),
+            AddressKind::NativeSegWit => Address::p2wpkh(&c_pk, self.network),
+            AddressKind::SegWit => Address::p2wpkh(&c_pk, self.network),
         };
 
-        if let Ok(add) = address {
-            Ok(Account {
-                address: add.to_string(),
-                path: path.to_string(),
-                index: 0,
-            })
-        } else {
-            let err = address.err().unwrap();
-            Err(err)
-        }
+        Ok(Account {
+            address: address.to_string(),
+            path: path.to_string(),
+            index: 0,
+        })
     }
 }

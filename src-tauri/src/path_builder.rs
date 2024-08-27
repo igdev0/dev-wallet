@@ -63,22 +63,20 @@ impl PathBuilder {
         self.change_index = index;
     }
 
-    pub fn coin_type(&self) -> String {
+    pub fn coin_type(&self) -> ChildNumber {
         match &self.network {
             SupportedNetworks::Bitcoin => match &self.network_kind {
-                NetworkKind::Main => ChildNumber::from_hardened_idx(0).unwrap().to_string(),
-                NetworkKind::Test => ChildNumber::from_hardened_idx(1).unwrap().to_string(),
+                NetworkKind::Main => ChildNumber::from_hardened_idx(0).unwrap(),
+                NetworkKind::Test => ChildNumber::from_hardened_idx(1).unwrap(),
             },
         }
     }
 
-    fn purpose(&self) -> String {
+    fn purpose(&self) -> ChildNumber {
         match self.address_kind {
-            PathAddressKind::Legacy => ChildNumber::from_hardened_idx(44).unwrap().to_string(),
-            PathAddressKind::SegWit => ChildNumber::from_hardened_idx(49).unwrap().to_string(),
-            PathAddressKind::NativeSegWit => {
-                ChildNumber::from_hardened_idx(84).unwrap().to_string()
-            }
+            PathAddressKind::Legacy => ChildNumber::from_hardened_idx(44).unwrap(),
+            PathAddressKind::SegWit => ChildNumber::from_hardened_idx(49).unwrap(),
+            PathAddressKind::NativeSegWit => ChildNumber::from_hardened_idx(84).unwrap(),
         }
     }
 
@@ -90,13 +88,14 @@ impl PathBuilder {
         let change_index = ChildNumber::from_normal_idx(self.change_index).unwrap();
         let index = ChildNumber::from_normal_idx(self.index).unwrap();
 
-        DerivationPath::from_str(
-            format!(
-                "m/{}/{}/{}/{}/{}",
-                purpose, coin_type, account_index, change_index, index
-            )
-            .as_str(),
-        )
-        .expect("Wasn't able to create a derivation path")
+        DerivationPath::from(vec![purpose, coin_type, account_index, change_index, index])
+        // DerivationPath::from_str(
+        //     format!(
+        //         "{}/{}/{}/{}/{}",
+        //         purpose, coin_type, account_index, change_index, index
+        //     )
+        //     .as_str(),
+        // )
+        // .expect("Wasn't able to create a derivation path")
     }
 }
