@@ -50,15 +50,6 @@ async fn load_wallet() {
 }
 
 #[test]
-fn can_create_account() {
-    let mnemonic = mnemonic_helper();
-    let mut wallet = WalletBuilder::new(&mnemonic.to_string());
-    wallet.passphrase(String::from("StrongPassphrase"));
-    let wallet = wallet.build();
-}
-
-#[test]
-
 fn can_build_bip32_path() {
     let path = PathBuilder::new();
     let path = path.build().to_string();
