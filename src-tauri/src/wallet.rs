@@ -21,7 +21,6 @@ pub struct Wallet {
 
 impl Wallet {
     pub fn create_account(&self) -> AccountBuilder {
-        // let account = AccountBuilder::
         let mut account_builder = AccountBuilder::new();
         account_builder.seed(&self.seed);
         account_builder
