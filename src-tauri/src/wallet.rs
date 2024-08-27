@@ -1,3 +1,5 @@
+use std::cell::RefCell;
+use std::rc::Rc;
 use std::str::FromStr;
 
 use crate::account::{Account, AccountBuilder};
@@ -14,14 +16,17 @@ pub struct Wallet {
     // We need the seed to create the master key
     pub name: String,
     seed: String,
+    id: Option<String>,
     // We need the accounts field to store the keys a.k.a "accounts"
-    accounts: Mutex<Vec<Account>>,
+    pub accounts: Rc<RefCell<Vec<Account>>>,
     passphrase: Option<String>,
 }
 
 impl Wallet {
     pub fn create_account(&self) -> AccountBuilder {
         let mut account_builder = AccountBuilder::new();
+        let id = &self.id.clone().expect("Wasn't able to initiate the account builder, make sure you save the wallet first, before trying to create the account.");
+        account_builder.wallet_id(id.to_string());
         account_builder.seed(&self.seed);
         account_builder
     }
@@ -32,13 +37,24 @@ impl Wallet {
             .bind(&self.name)
             .fetch_one(db)
             .await;
-
         if let Ok(data) = result {
+            let id: String = data.get("id");
+            let account_results = sqlx::query("SELECT * from accounts WHERE wallet_id = ?;")
+                .bind(&id)
+                .fetch_all(db)
+                .await
+                .expect("Wasn't able to fetch accounts for wallet");
+            let mut accounts = vec![];
+            for acc in account_results.iter() {
+                accounts.push(Account::from_entry(acc));
+            }
+
             let wallet_name: String = data.get("name");
             let seed: String = data.get("seed");
             return Ok(Wallet {
                 name: wallet_name,
-                accounts: Mutex::new(Vec::new()),
+                id: Some(id),
+                accounts: Rc::new(RefCell::new(accounts)),
                 passphrase: None,
                 seed,
             });
@@ -79,8 +95,9 @@ impl WalletBuilder {
 
     pub fn from_existing(name: &str) -> Wallet {
         Wallet {
+            id: None,
             name: name.to_string(),
-            accounts: Mutex::new(Vec::new()),
+            accounts: Rc::new(RefCell::new(Vec::new())),
             passphrase: Some("".to_string()),
             seed: "".to_string(),
         }
@@ -106,10 +123,11 @@ impl WalletBuilder {
             .to_seed(passphrase.to_string());
 
         Wallet {
+            id: None,
             name: self.name.unwrap(),
             seed: seed.to_hex_string(Case::Lower),
             passphrase: Some(passphrase),
-            accounts: Mutex::new(Vec::new()),
+            accounts: Rc::new(RefCell::new(Vec::new())),
         }
     }
 }

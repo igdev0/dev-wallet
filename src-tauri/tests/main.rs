@@ -1,3 +1,6 @@
+use std::{borrow::Borrow, rc::Rc};
+
+use async_std::sync::Mutex;
 use bip39::Mnemonic;
 use bitcoin::hex::{Case, DisplayHex};
 use bitcoin_wallet::{
@@ -70,4 +73,35 @@ fn can_build_account() {
     println!("Address length: {}", account.address.len());
 
     dbg!(&account.address);
+}
+
+#[tokio::test]
+
+async fn can_store_accounts_for_wallet() {
+    let conn_facade = storage::DbFacade::new(Some("sqlite::memory:")).await;
+    conn_facade.migrate().await;
+
+    let mnemonic = mnemonic_helper();
+
+    let mut wallet = WalletBuilder::new(&mnemonic.to_string());
+    wallet.name("Main wallet".to_string());
+    wallet.build().save(&conn_facade.pool).await;
+
+    let wallet = WalletBuilder::from_existing("Main wallet");
+
+    let wallet = wallet.load(&conn_facade.pool).await.unwrap();
+
+    let account_builder = wallet.create_account();
+    let account = account_builder.build().unwrap();
+    account.save(&conn_facade.pool).await;
+
+    // Now lets try to load the wallet + accounts
+    let wallet = wallet.load(&conn_facade.pool).await.unwrap();
+    let accounts_ref = Rc::clone(&wallet.accounts);
+    let accounts_len = accounts_ref.borrow_mut().len();
+    // println!("{}")
+    // let a  = *accounts_ref.borrow();
+    // accs.into_inner()
+    // let a = accs.borrow();
+    assert!(accounts_len > 0);
 }

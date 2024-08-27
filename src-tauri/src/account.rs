@@ -2,8 +2,10 @@ use bitcoin::{
     bip32::{DerivationPath, Xpriv},
     secp256k1, Address, CompressedPublicKey, Network, NetworkKind, PrivateKey, PubkeyHash,
 };
+use sqlx::sqlite::{SqliteColumn, SqliteRow, SqliteValue, SqliteValueRef};
 
 use crate::{path_builder::PathBuilder, storage::DbFacadePool, WalletError};
+use sqlx::Row;
 
 pub enum AccountType {
     Receiving,
@@ -47,28 +49,48 @@ impl AddressType_ for DerivationPath {
 
 pub struct Account {
     // "path" is a string that contains the path for the derived key e.g: m/44/0'/0'/0'/1
+    pub id: Option<String>,
     pub path: String,
+    pub wallet_id: String,
     pub index: u32,
     pub address: String,
 }
 
 impl Account {
-    fn new() {}
-    fn create_next(&self) -> Account {
-        Account {
-            address: "".to_string(),
-            path: "".to_string(),
-            index: 0,
-        }
+    pub async fn save(&self, db: &DbFacadePool) {
+        let id = uuid::Uuid::new_v4().to_string();
+        sqlx::query(
+            "INSERT into accounts (id, wallet_id, address, 'index', path) values (?,?,?,?,?)",
+        )
+        .bind(id)
+        .bind(&self.wallet_id)
+        .bind(&self.address)
+        .bind(&self.index)
+        .bind(&self.path)
+        .execute(db)
+        .await
+        .unwrap();
     }
 
-    async fn save(&self, db: &DbFacadePool) {
-        // let a =
+    pub fn from_entry(entry: &SqliteRow) -> Account {
+        let path: String = entry.get("path");
+        let address: String = entry.get("address");
+        let index: u32 = entry.get("index");
+        let id: String = entry.get("id");
+        let wallet_id: String = entry.get("wallet_id");
+        Account {
+            address,
+            id: Some(id),
+            index: index,
+            path,
+            wallet_id,
+        }
     }
 }
 
 pub struct AccountBuilder {
     path: DerivationPath,
+    wallet_id: String,
     index: Option<u32>,
     network: Network,
     network_kind: NetworkKind,
@@ -80,6 +102,7 @@ impl AccountBuilder {
     pub fn new() -> Self {
         AccountBuilder {
             index: Some(0),
+            wallet_id: String::new(),
             network: Network::Bitcoin,
             network_kind: NetworkKind::Main,
             address: None,
@@ -87,6 +110,11 @@ impl AccountBuilder {
             seed: Vec::new(),
         }
     }
+
+    pub fn wallet_id(&mut self, id: String) {
+        self.wallet_id = id
+    }
+
     pub fn path(&mut self, path: DerivationPath) {
         self.path = path
     }
@@ -124,6 +152,8 @@ impl AccountBuilder {
         };
 
         Ok(Account {
+            id: None,
+            wallet_id: self.wallet_id,
             address: address.to_string(),
             path: path.to_string(),
             index: self.index.unwrap(),
