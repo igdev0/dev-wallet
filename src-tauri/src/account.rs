@@ -115,8 +115,6 @@ impl AccountBuilder {
             .derive_priv(&secp, path)
             .expect("failed deriving the private key from path");
 
-        let pk = xprv.private_key.public_key(&secp);
-
         let pk = PrivateKey::new(xprv.private_key, self.network);
         let c_pk = CompressedPublicKey::from_private_key(&secp, &pk)
             .expect("Failed while attempting to create compressed pub key from slice.");
