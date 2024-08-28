@@ -1,4 +1,4 @@
-use std::{borrow::Borrow, rc::Rc};
+use std::rc::Rc;
 
 use bip39::Mnemonic;
 use bitcoin::hex::{Case, DisplayHex};
@@ -28,7 +28,8 @@ async fn create_wallet() {
     let db = connection.pool;
     let mnemonic = mnemonic_helper();
     let mut wallet = WalletBuilder::new(&mnemonic.to_string());
-    wallet.name("Main wallet".to_string());
+    let wallet_name = "Main wallet";
+    wallet.name(&wallet_name);
 
     let wallet = wallet.build();
 
@@ -43,11 +44,14 @@ async fn load_wallet() {
     let mnemonic = mnemonic_helper();
 
     let mut wallet = WalletBuilder::new(&mnemonic.to_string());
-    wallet.name("Main wallet".to_string());
+    let wallet_name = "Main wallet";
+    let wallet_pass = "PassPhrase";
+    wallet.passphrase(&wallet_pass);
+    wallet.name(&wallet_name);
     wallet.build().save(&conn_facade.pool).await;
 
     let wallet = WalletBuilder::from_existing("Main wallet");
-    let wallet = wallet.load(&conn_facade.pool).await;
+    let wallet = wallet.authenticate(&wallet_pass, &conn_facade.pool).await;
 
     assert_eq!(wallet.unwrap().name, "Main wallet")
 }
@@ -76,7 +80,6 @@ fn can_build_account() {
 }
 
 #[tokio::test]
-
 async fn can_store_accounts_for_wallet() {
     let conn_facade = storage::DbFacade::new(Some("sqlite::memory:")).await;
     conn_facade.migrate().await;
@@ -84,19 +87,27 @@ async fn can_store_accounts_for_wallet() {
     let mnemonic = mnemonic_helper();
 
     let mut wallet = WalletBuilder::new(&mnemonic.to_string());
-    wallet.name("Main wallet".to_string());
+    let wallet_name = "Main wallet";
+    let wallet_pass = "PassPhrase";
+    wallet.passphrase(&wallet_pass);
+    wallet.name(&wallet_name);
     wallet.build().save(&conn_facade.pool).await;
+    let wallet = WalletBuilder::from_existing(&wallet_name);
 
-    let wallet = WalletBuilder::from_existing("Main wallet");
-
-    let wallet = wallet.load(&conn_facade.pool).await.unwrap();
+    let wallet = wallet
+        .authenticate(&wallet_pass, &conn_facade.pool)
+        .await
+        .unwrap();
 
     let account_builder = wallet.create_account();
     let account = account_builder.build().unwrap();
     account.save(&conn_facade.pool).await;
 
     // Now lets try to load the wallet + accounts
-    let wallet = wallet.load(&conn_facade.pool).await.unwrap();
+    let wallet = wallet
+        .authenticate(&wallet_pass, &conn_facade.pool)
+        .await
+        .unwrap();
     let accounts_ref = Rc::clone(&wallet.accounts);
     let accounts_len = accounts_ref.borrow_mut().len();
     assert!(accounts_len > 0);

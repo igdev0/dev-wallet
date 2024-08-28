@@ -33,7 +33,7 @@ fn create_wallet(input: String, state: State<'_, AppState>) -> String {
     println!("{}", &input);
     let mnemonics = state.mnemonics.lock().unwrap();
     let mut wallet_builder = WalletBuilder::new(&*mnemonics);
-    wallet_builder.passphrase(input);
+    wallet_builder.passphrase(input.as_str());
     let wallet = wallet_builder.build();
 
     "Wallet created".to_string()

@@ -15,6 +15,8 @@ pub enum WalletError {
     NotFound,
     #[error("Invalid input: {0}")]
     InvalidInput(String),
+    #[error("Failed to authenticate, incorrect password: {0}")]
+    AuthenticationFailed(String),
     #[error("Unable to create wallet")]
     WalletCreationError,
     #[error("Unexpected error: {0}")]

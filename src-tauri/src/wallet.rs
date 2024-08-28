@@ -9,17 +9,18 @@ use crate::storage::DbFacadePool;
 use crate::utils::{decrypt, encrypt};
 use crate::WalletError;
 
+use argon2::{
+    password_hash::{rand_core::OsRng, PasswordHash, PasswordHasher, PasswordVerifier, SaltString},
+    Argon2,
+};
 use bip39::Mnemonic;
-use bitcoin::hex::{Case, DisplayHex};
-
-use sqlx::Row;
+use bitcoin::hex::{parse, Case, DisplayHex};
+use sqlx::{query, Row};
 
 pub struct Wallet {
-    // We need the seed to create the master key
     pub name: String,
     seed: String,
     id: Option<String>,
-    // We need the accounts field to store the keys a.k.a "accounts"
     pub accounts: Rc<RefCell<Vec<Account>>>,
     passphrase: Option<String>,
 }
@@ -33,8 +34,6 @@ impl Wallet {
         account_builder
     }
 
-    pub fn remove_account(&self) {}
-
     fn encrypted_seed(&self) -> String {
         let config = Config::from_env();
         let mut key = [0u8; 32];
@@ -42,45 +41,74 @@ impl Wallet {
         encrypt(&key, self.seed.as_bytes()).to_hex_string(Case::Lower)
     }
 
-    pub async fn load(&self, db: &DbFacadePool) -> Result<Wallet, WalletError> {
-        let config = Config::from_env();
-        let result = sqlx::query("SELECT * from wallets WHERE name = ?;")
+    async fn load_accounts(&self, id: &String, db: &DbFacadePool) -> Vec<Account> {
+        let account_results = sqlx::query("SELECT * from accounts WHERE wallet_id = ?;")
+            .bind(&id)
+            .fetch_all(db)
+            .await
+            .expect("Wasn't able to fetch accounts for wallet");
+        let mut accounts = vec![];
+        for acc in account_results.iter() {
+            accounts.push(Account::from_entry(acc));
+        }
+
+        accounts
+    }
+
+    pub async fn authenticate(
+        &self,
+        password: &str,
+        db: &DbFacadePool,
+    ) -> Result<Wallet, WalletError> {
+        let result = sqlx::query("SELECT * FROM wallets WHERE name = ?;")
             .bind(&self.name)
             .fetch_one(db)
             .await;
+
         if let Ok(data) = result {
             let id: String = data.get("id");
-            let account_results = sqlx::query("SELECT * from accounts WHERE wallet_id = ?;")
-                .bind(&id)
-                .fetch_all(db)
-                .await
-                .expect("Wasn't able to fetch accounts for wallet");
-            let mut accounts = vec![];
-            for acc in account_results.iter() {
-                accounts.push(Account::from_entry(acc));
-            }
-
             let wallet_name: String = data.get("name");
+            let password_hash: String = data.get("password");
+            let argon2 = Argon2::default();
+
+            let parsed_password =
+                PasswordHash::new(&password_hash).expect("Failed to parse password");
+
+            let is_valid = argon2.verify_password(password.as_bytes(), &parsed_password);
+            if let Err(_) = is_valid {
+                return Err(WalletError::AuthenticationFailed(
+                    "Password invalid".to_string(),
+                ));
+            }
             let seed: String = data.get("seed");
+            let seed = hex::decode(seed).unwrap();
+            let config = Config::from_env();
+            let accounts = self.load_accounts(&id, db).await;
+
             let mut key = [0u8; 32];
             key.copy_from_slice(config.database_key.as_bytes());
-            let decoded_seed = hex::decode(seed).unwrap();
-            return Ok(Wallet {
-                name: wallet_name,
-                id: Some(id),
-                accounts: Rc::new(RefCell::new(accounts)),
-                passphrase: None,
-                seed: decrypt(&key, &decoded_seed).to_hex_string(Case::Lower),
-            });
-        }
-        Err(WalletError::NotFound)
-    }
 
-    pub async fn authenticate() {}
+            return Ok(Wallet {
+                id: Some(id),
+                name: wallet_name,
+                passphrase: None,
+                seed: decrypt(&key, &seed).to_hex_string(Case::Lower),
+                accounts: Rc::new(RefCell::new(accounts)),
+            });
+        } else {
+            Err(WalletError::NotFound)
+        }
+    }
 
     pub async fn save(&self, db: &DbFacadePool) {
         let id = uuid::Uuid::new_v4().to_string();
         let password = &self.passphrase.as_ref().unwrap();
+        let salt = SaltString::generate(OsRng);
+        let argon2 = Argon2::default();
+        let password = argon2
+            .hash_password(password.as_bytes(), &salt)
+            .expect("Failed hashing password")
+            .to_string();
         sqlx::query("INSERT into wallets (id, name, seed, password) values(?,?,?,?);")
             .bind(id)
             .bind(self.name.clone())
@@ -117,16 +145,16 @@ impl WalletBuilder {
         }
     }
 
-    pub fn passphrase(&mut self, pass: String) {
-        self.passphrase = Some(pass);
+    pub fn passphrase(&mut self, pass: &str) {
+        self.passphrase = Some(pass.to_string());
     }
 
     pub fn mnemonic(&mut self, mnemonic: String) {
         self.mnemonic = Some(mnemonic);
     }
 
-    pub fn name(&mut self, name: String) {
-        self.name = Some(name);
+    pub fn name(&mut self, name: &str) {
+        self.name = Some(name.to_string());
     }
 
     pub fn build(self) -> Wallet {
