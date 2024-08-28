@@ -14,8 +14,8 @@ use argon2::{
     Argon2,
 };
 use bip39::Mnemonic;
-use bitcoin::hex::{parse, Case, DisplayHex};
-use sqlx::{query, Row};
+use bitcoin::hex::{Case, DisplayHex};
+use sqlx::Row;
 
 pub struct Wallet {
     pub name: String,

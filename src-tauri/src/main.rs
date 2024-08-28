@@ -2,10 +2,9 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 use bitcoin_wallet::{
-    storage::{self, DbFacade, DbFacadePool},
+    storage::{self, DbFacadePool},
     wallet::WalletBuilder,
 };
-use sqlx::{Pool, Sqlite, SqliteConnection};
 use std::sync::{Arc, Mutex};
 use tauri::{Manager, State};
 

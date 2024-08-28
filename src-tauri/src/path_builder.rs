@@ -1,5 +1,3 @@
-use std::str::FromStr;
-
 use bitcoin::bip32::{ChildNumber, DerivationPath};
 use bitcoin::NetworkKind;
 
@@ -81,7 +79,6 @@ impl PathBuilder {
     }
 
     pub fn build(&self) -> DerivationPath {
-        // Add purpose
         let purpose = self.purpose();
         let coin_type = self.coin_type();
         let account_index = ChildNumber::from_hardened_idx(self.account_index).unwrap();
@@ -89,13 +86,5 @@ impl PathBuilder {
         let index = ChildNumber::from_normal_idx(self.index).unwrap();
 
         DerivationPath::from(vec![purpose, coin_type, account_index, change_index, index])
-        // DerivationPath::from_str(
-        //     format!(
-        //         "{}/{}/{}/{}/{}",
-        //         purpose, coin_type, account_index, change_index, index
-        //     )
-        //     .as_str(),
-        // )
-        // .expect("Wasn't able to create a derivation path")
     }
 }

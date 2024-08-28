@@ -2,7 +2,7 @@ use bitcoin::{
     bip32::{DerivationPath, Xpriv},
     secp256k1, Address, CompressedPublicKey, Network, NetworkKind, PrivateKey, PubkeyHash,
 };
-use sqlx::sqlite::{SqliteColumn, SqliteRow, SqliteValue, SqliteValueRef};
+use sqlx::sqlite::SqliteRow;
 
 use crate::{path_builder::PathBuilder, storage::DbFacadePool, WalletError};
 use sqlx::Row;
@@ -30,10 +30,6 @@ impl AddressType_ for DerivationPath {
         let parts: Vec<&str> = path.split('/').collect();
 
         // Check if the first part is "m" (master key)
-        // if parts[0] != "m" {
-        //     return AddressKind::Unknown;
-        // }
-
         // Match based on the purpose field (second part)
         match parts[0] {
             "44'" => AddressKind::Legacy,

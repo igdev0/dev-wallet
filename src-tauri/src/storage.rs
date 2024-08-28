@@ -1,4 +1,4 @@
-use sqlx::{migrate::MigrateDatabase, sqlite::SqlitePoolOptions, Pool, Sqlite, SqliteConnection};
+use sqlx::{migrate::MigrateDatabase, sqlite::SqlitePoolOptions, Pool, Sqlite};
 
 pub enum ConnectionType {
     InMemory,
