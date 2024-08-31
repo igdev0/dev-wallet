@@ -71,4 +71,4 @@ This project is licensed under the [Your License Name] - see the [LICENSE](LICEN
 
 ## Contact
 
-For any inquiries or feedback, please open an issue on GitHub or reach out via [your preferred contact method].
+For any inquiries or feedback, please open an issue on GitHub.
