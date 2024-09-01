@@ -2,7 +2,6 @@ pub mod account;
 pub mod config;
 pub mod path_builder;
 pub mod storage;
-pub mod transaction;
 pub mod utils;
 pub mod wallet;
 use thiserror::Error;
