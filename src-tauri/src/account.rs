@@ -18,13 +18,13 @@ pub enum AddressKind {
     NativeSegWit, // P2WPKH
 }
 
-trait AddressType_ {
+trait AddressMethod {
     fn address_type(&self) -> AddressKind {
         AddressKind::SegWit
     }
 }
 
-impl AddressType_ for DerivationPath {
+impl AddressMethod for DerivationPath {
     fn address_type(&self) -> AddressKind {
         let path = &self.to_string();
         let parts: Vec<&str> = path.split('/').collect();
