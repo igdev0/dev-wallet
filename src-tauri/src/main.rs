@@ -5,6 +5,7 @@ use bitcoin_wallet::{
     storage::{self, DbFacadePool},
     wallet::WalletBuilder,
 };
+use serde_json::json;
 use std::sync::Arc;
 use tauri::{Manager, State};
 use tokio::sync::Mutex;
@@ -41,9 +42,11 @@ async fn create_wallet(
     wallet_builder.name(&name);
 
     let wallet = wallet_builder.build();
-    let results = wallet.save(&db).await;
-
-    Ok("Wallet created".to_string())
+    wallet.save(&db).await;
+    let result = json!({
+        name: wallet.name
+    });
+    Ok(result.to_string())
     // wallet.name
 }
 
