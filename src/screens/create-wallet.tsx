@@ -47,10 +47,16 @@ export default function MnemonicScreen() {
   const handleSubmit = useCallback<FormEventHandler>(
     async (event) => {
       event.preventDefault();
+      if (state.name.length === 0) {
+        return setError({
+          errorMessage: "This field is required",
+          fieldName: "name",
+        });
+      }
       if (state.password !== state.confirm_password) {
         return setError({
           errorMessage: "The passwords are not matching",
-          fieldName: "password",
+          fieldName: "confirm_password",
         });
       }
 
@@ -61,15 +67,11 @@ export default function MnemonicScreen() {
         });
       }
 
-      if (state.name.length === 0) {
-        return setError({
-          errorMessage: "This value is required",
-          fieldName: "name",
-        });
-      }
-
       try {
-        const res = await invoke("create_wallet", { input: state.password });
+        const res = await invoke("create_wallet", {
+          input: state.password,
+          name: state.name,
+        });
         setState(JSON.parse(JSON.stringify(INITIAL_STATE)));
         setError(null);
       } catch (err) {
@@ -134,7 +136,7 @@ export default function MnemonicScreen() {
               </Flex>
             </Code>
             <Spacer mt={2} />
-            <FormControl isInvalid={!!error} as="fieldset">
+            <FormControl isInvalid={error?.fieldName === "name"} as="fieldset">
               <FormLabel htmlFor="password">Wallet name</FormLabel>
               <Input
                 type="text"
@@ -143,9 +145,13 @@ export default function MnemonicScreen() {
                 onChange={handleInputChange}
                 placeholder="E.g: Main"
               />
+              <FormErrorMessage>{error?.errorMessage}</FormErrorMessage>
             </FormControl>
             <Spacer mt={2} />
-            <FormControl isInvalid={!!error} as="fieldset">
+            <FormControl
+              isInvalid={error?.fieldName === "password"}
+              as="fieldset"
+            >
               <FormLabel htmlFor="password">Password</FormLabel>
               <Input
                 type="password"
@@ -154,10 +160,10 @@ export default function MnemonicScreen() {
                 onChange={handleInputChange}
                 placeholder="****"
               />
-            </FormControl>
-            <FormControl isInvalid={!!error}>
-              <FormLabel>Confirm password</FormLabel>
               <FormErrorMessage>{error?.errorMessage}</FormErrorMessage>
+            </FormControl>
+            <FormControl isInvalid={error?.fieldName === "confirm_password"}>
+              <FormLabel>Confirm password</FormLabel>
               <Input
                 type="password"
                 name="confirm_password"
