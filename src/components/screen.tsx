@@ -1,5 +1,5 @@
 import { Box } from "@chakra-ui/react";
-import TopBar from "./top-bar.tsx";
+import Navbar from "./navbar.tsx";
 import { PropsWithChildren } from "react";
 
 interface Props extends PropsWithChildren {
@@ -8,8 +8,8 @@ interface Props extends PropsWithChildren {
 
 export default function Screen({ title = "Screen name", children }: Props) {
   return (
-    <Box height="100vh" width="100%" overflow="auto">
-      <TopBar text={title} />
+    <Box height="100vh" width="100%" overflow="auto" p={3}>
+      <Navbar text={title} />
       {children}
     </Box>
   );
