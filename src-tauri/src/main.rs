@@ -5,8 +5,9 @@ use bitcoin_wallet::{
     storage::{self, DbFacadePool},
     wallet::WalletBuilder,
 };
-use std::sync::{Arc, Mutex};
+use std::sync::Arc;
 use tauri::{Manager, State};
+use tokio::sync::Mutex;
 
 // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
 
@@ -16,26 +17,34 @@ struct AppState {
 }
 
 #[tauri::command]
-fn generate_mnemonic(state: State<'_, AppState>) -> String {
+async fn generate_mnemonic(state: State<'_, AppState>) -> Result<String, String> {
     let mnemonics: String = bitcoin_wallet::utils::generate_mnemonic()
         .unwrap()
         .to_string();
 
-    let mut m = state.mnemonics.lock().unwrap();
+    let mut m = state.mnemonics.lock().await;
     *m = mnemonics.clone();
 
-    mnemonics
+    Ok(mnemonics)
 }
 
 #[tauri::command]
-fn create_wallet(input: String, state: State<'_, AppState>) -> String {
-    println!("{}", &input);
-    let mnemonics = state.mnemonics.lock().unwrap();
+async fn create_wallet(
+    name: String,
+    password: String,
+    state: State<'_, AppState>,
+) -> Result<String, String> {
+    let mnemonics = state.mnemonics.lock().await;
+    let db = &state.db_pool.lock().await;
     let mut wallet_builder = WalletBuilder::new(&*mnemonics);
-    wallet_builder.passphrase(input.as_str());
-    let wallet = wallet_builder.build();
+    wallet_builder.passphrase(&password);
+    wallet_builder.name(&name);
 
-    "Wallet created".to_string()
+    let wallet = wallet_builder.build();
+    let results = wallet.save(&db).await;
+
+    Ok("Wallet created".to_string())
+    // wallet.name
 }
 
 #[async_std::main]

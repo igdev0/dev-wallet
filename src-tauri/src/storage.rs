@@ -33,6 +33,5 @@ impl DbFacade {
 
     pub async fn migrate(&self) {
         sqlx::migrate!().run(&self.pool).await.unwrap()
-        // .expect("Unable to run the migrations");
     }
 }

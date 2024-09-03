@@ -1,6 +1,6 @@
-use std::cell::RefCell;
-use std::rc::Rc;
 use std::str::FromStr;
+use std::sync::Arc;
+// use tokio::s
 
 use crate::account::{Account, AccountBuilder};
 
@@ -16,12 +16,13 @@ use argon2::{
 use bip39::Mnemonic;
 use bitcoin::hex::{Case, DisplayHex};
 use sqlx::Row;
+use tokio::sync::Mutex; // Use tokio's Mutex
 
 pub struct Wallet {
     pub name: String,
     seed: String,
     id: Option<String>,
-    pub accounts: Rc<RefCell<Vec<Account>>>,
+    pub accounts: Arc<Mutex<Vec<Account>>>, // Using tokio::sync::Mutex
     passphrase: Option<String>,
 }
 
@@ -93,7 +94,7 @@ impl Wallet {
                 name: wallet_name,
                 passphrase: None,
                 seed: decrypt(&key, &seed).to_hex_string(Case::Lower),
-                accounts: Rc::new(RefCell::new(accounts)),
+                accounts: Arc::new(Mutex::new(accounts)),
             });
         } else {
             Err(WalletError::NotFound)
@@ -139,7 +140,7 @@ impl WalletBuilder {
         Wallet {
             id: None,
             name: name.to_string(),
-            accounts: Rc::new(RefCell::new(Vec::new())),
+            accounts: Arc::new(Mutex::new(Vec::new())), // Use tokio::sync::Mutex here too
             passphrase: Some("".to_string()),
             seed: "".to_string(),
         }
@@ -169,7 +170,7 @@ impl WalletBuilder {
             name: self.name.unwrap(),
             seed: seed.to_hex_string(Case::Lower),
             passphrase: Some(passphrase),
-            accounts: Rc::new(RefCell::new(Vec::new())),
+            accounts: Arc::new(Mutex::new(Vec::new())), // Use tokio::sync::Mutex
         }
     }
 }
