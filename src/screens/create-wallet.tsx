@@ -3,7 +3,11 @@ import {
   Button,
   Code,
   Flex,
+  FormControl,
+  FormErrorMessage,
+  FormLabel,
   Heading,
+  Icon,
   IconButton,
   Input,
   Spacer,
@@ -14,8 +18,7 @@ import Loading from "../components/loading.tsx";
 import Error from "../components/error.tsx";
 import Screen from "../components/screen.tsx";
 import { FormEventHandler, useCallback, useState } from "react";
-import { Link } from "react-router-dom";
-import { Copy01, RefreshCw01 } from "@untitled-ui/icons-react";
+import { Check, Copy01, RefreshCw01 } from "@untitled-ui/icons-react";
 import { invoke } from "@tauri-apps/api";
 
 const INITIAL_STATE = {
@@ -24,12 +27,13 @@ const INITIAL_STATE = {
 };
 
 interface State {
+  name: string;
   confirm_password: string;
   password: string;
 }
 
 interface InputError {
-  fieldName: "confirm_password" | "password";
+  fieldName: "confirm_password" | "password" | "name";
   errorMessage: string;
 }
 
@@ -57,9 +61,17 @@ export default function MnemonicScreen() {
         });
       }
 
+      if (state.name.length === 0) {
+        return setError({
+          errorMessage: "This value is required",
+          fieldName: "name",
+        });
+      }
+
       try {
         const res = await invoke("create_wallet", { input: state.password });
         setState(JSON.parse(JSON.stringify(INITIAL_STATE)));
+        setError(null);
       } catch (err) {
         // handle errors
       }
@@ -76,6 +88,8 @@ export default function MnemonicScreen() {
     },
     [setState],
   );
+
+  const handleRefreshMnemonics = useCallback(() => {}, []);
 
   const handleContinue = useCallback(() => {}, []);
   if (mnemonics.isLoading) {
@@ -101,42 +115,61 @@ export default function MnemonicScreen() {
         flexWrap="wrap"
         justifyContent="center"
       >
-        <Box>
-          <Text>Your mnemonic</Text>
-          <Code position="relative" p={2} _light={{ bg: "gray.200" }}>
-            {mnemonics.data?.toString()}
-            <Flex gap={1} justifyContent="flex-end">
-              <IconButton aria-label="copy" size="sm" right={0} bottom={0}>
-                <Copy01 width={20} />
-              </IconButton>
-              <IconButton aria-label="refresh" size="sm">
-                <RefreshCw01 />
-              </IconButton>
-            </Flex>
-          </Code>
-          <Spacer mt={2} />
-          <label htmlFor="password">
-            Password
-            <Input
-              type="password"
-              name="password"
-              value={state.password}
-              onChange={handleInputChange}
-              placeholder="****"
-            />
-          </label>
-          <Spacer mt={2} />
-          <label htmlFor="confirmPassword">
-            Confirm password
-            <Input
-              type="password"
-              name="confirm_password"
-              value={state.confirm_password}
-              onChange={handleInputChange}
-              placeholder="****"
-            />
-          </label>
-        </Box>
+        <form id="create-wallet" onSubmit={handleSubmit}>
+          <Box>
+            <Text>Your mnemonic</Text>
+            <Code position="relative" p={2} _light={{ bg: "gray.200" }}>
+              {mnemonics.data?.toString()}
+              <Flex gap={1} justifyContent="flex-end">
+                <IconButton aria-label="copy" size="sm" right={0} bottom={0}>
+                  <Copy01 width={20} />
+                </IconButton>
+                <IconButton
+                  aria-label="refresh"
+                  size="sm"
+                  onClick={handleRefreshMnemonics}
+                >
+                  <RefreshCw01 />
+                </IconButton>
+              </Flex>
+            </Code>
+            <Spacer mt={2} />
+            <FormControl isInvalid={!!error} as="fieldset">
+              <FormLabel htmlFor="password">Wallet name</FormLabel>
+              <Input
+                type="text"
+                name="name"
+                value={state.name}
+                onChange={handleInputChange}
+                placeholder="E.g: Main"
+              />
+            </FormControl>
+            <Spacer mt={2} />
+            <FormControl isInvalid={!!error} as="fieldset">
+              <FormLabel htmlFor="password">Password</FormLabel>
+              <Input
+                type="password"
+                name="password"
+                value={state.password}
+                onChange={handleInputChange}
+                placeholder="****"
+              />
+            </FormControl>
+            <FormControl isInvalid={!!error}>
+              <FormLabel>Confirm password</FormLabel>
+              <FormErrorMessage>{error?.errorMessage}</FormErrorMessage>
+              <Input
+                type="password"
+                name="confirm_password"
+                value={state.confirm_password}
+                onChange={handleInputChange}
+                placeholder="****"
+              />
+              <FormErrorMessage>{error?.errorMessage}</FormErrorMessage>
+            </FormControl>
+            <Spacer mt={2} />
+          </Box>
+        </form>
       </Box>
       <Flex
         gap={2}
@@ -148,11 +181,18 @@ export default function MnemonicScreen() {
         bottom={3}
         w="100%"
       >
-        <Button colorScheme="teal" onClick={mnemonics.refetch}>
-          Regenerate
-        </Button>
-        <Button colorScheme="blue" as={Link} to="/security">
-          Continue
+        <Button
+          colorScheme="blue"
+          type="submit"
+          justifyItems="center"
+          alignItems="center"
+          form="#create-wallet"
+          onClick={handleSubmit}
+        >
+          Submit
+          <Icon ml={2}>
+            <Check />
+          </Icon>
         </Button>
       </Flex>
     </Screen>
