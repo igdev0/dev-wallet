@@ -2,23 +2,19 @@ import {
   Flex,
   Heading,
   IconButton,
-  Switch,
   useColorMode,
   useToken,
 } from "@chakra-ui/react";
-import { ChangeEvent, useCallback } from "react";
+import { useCallback } from "react";
 import Logo from "./logo.tsx";
-import { Plus } from "@untitled-ui/icons-react";
+import { Moon01, Plus, Sun } from "@untitled-ui/icons-react";
 
 export default function Navbar({ text = "" }) {
   const { colorMode, setColorMode } = useColorMode();
   const [bdcDark, bdcLight] = useToken("colors", ["white", "black"]);
-  const handleColorChange = useCallback(
-    (event: ChangeEvent<HTMLInputElement>) => {
-      setColorMode(event.currentTarget.checked ? "dark" : "light");
-    },
-    [colorMode],
-  );
+  const handleColorChange = useCallback(() => {
+    setColorMode(colorMode === "light" ? "dark" : "light");
+  }, [colorMode]);
   return (
     <Flex
       h="10"
@@ -37,11 +33,9 @@ export default function Navbar({ text = "" }) {
         <IconButton isRound={true} size="sm">
           <Plus />
         </IconButton>
-        <Switch
-          colorScheme="orange"
-          onChange={handleColorChange}
-          defaultChecked={colorMode === "dark"}
-        />
+        <IconButton aria-label="Theme" onClick={handleColorChange}>
+          {colorMode === "dark" ? <Sun /> : <Moon01 />}
+        </IconButton>
       </Flex>
     </Flex>
   );
