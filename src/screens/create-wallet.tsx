@@ -12,6 +12,8 @@ import {
   Input,
   Spacer,
   Text,
+  Tooltip,
+  useClipboard,
 } from "@chakra-ui/react";
 import useMnemonics from "../hooks/use-mnemonics.ts";
 import Loading from "../components/loading.tsx";
@@ -39,7 +41,9 @@ interface InputError {
 
 export default function MnemonicScreen() {
   const mnemonics = useMnemonics();
-
+  const { onCopy, value, setValue, hasCopied } = useClipboard("");
+  const [isCopyTooltipOpen, setIsCopyTooltipOpen] = useState(false);
+  const [isRefreshTooltipOpen, setIsRefreshTooltipOpen] = useState(false);
   const [error, setError] = useState<InputError>(null);
   const [state, setState] = useState<State>(
     JSON.parse(JSON.stringify(INITIAL_STATE)),
@@ -69,7 +73,7 @@ export default function MnemonicScreen() {
 
       try {
         const res = await invoke("create_wallet", {
-          input: state.password,
+          password: state.password,
           name: state.name,
         });
         setState(JSON.parse(JSON.stringify(INITIAL_STATE)));
@@ -91,9 +95,23 @@ export default function MnemonicScreen() {
     [setState],
   );
 
-  const handleRefreshMnemonics = useCallback(() => {}, []);
+  const handleMnemonicsCopy = () => {
+    setValue(mnemonics.toString);
+    onCopy();
+    setIsCopyTooltipOpen(true);
+    setTimeout(() => {
+      setIsCopyTooltipOpen(false);
+    }, 1500);
+  };
 
-  const handleContinue = useCallback(() => {}, []);
+  const handleRefreshMnemonics = useCallback(async () => {
+    await mnemonics.refetch();
+    setIsRefreshTooltipOpen(true);
+    setTimeout(() => {
+      setIsRefreshTooltipOpen(false);
+    }, 1500);
+  }, [mnemonics]);
+
   if (mnemonics.isLoading) {
     return <Loading />;
   }
@@ -123,16 +141,30 @@ export default function MnemonicScreen() {
             <Code position="relative" p={2} _light={{ bg: "gray.200" }}>
               {mnemonics.data?.toString()}
               <Flex gap={1} justifyContent="flex-end">
-                <IconButton aria-label="copy" size="sm" right={0} bottom={0}>
-                  <Copy01 width={20} />
-                </IconButton>
-                <IconButton
-                  aria-label="refresh"
-                  size="sm"
-                  onClick={handleRefreshMnemonics}
+                <Tooltip label="Copied!" hasArrow isOpen={isCopyTooltipOpen}>
+                  <IconButton
+                    aria-label="copy"
+                    size="sm"
+                    right={0}
+                    bottom={0}
+                    onClick={handleMnemonicsCopy}
+                  >
+                    <Copy01 width={20} />
+                  </IconButton>
+                </Tooltip>
+                <Tooltip
+                  label="Refreshed!"
+                  hasArrow
+                  isOpen={isRefreshTooltipOpen}
                 >
-                  <RefreshCw01 />
-                </IconButton>
+                  <IconButton
+                    aria-label="refresh"
+                    size="sm"
+                    onClick={handleRefreshMnemonics}
+                  >
+                    <RefreshCw01 />
+                  </IconButton>
+                </Tooltip>
               </Flex>
             </Code>
             <Spacer mt={2} />
