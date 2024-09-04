@@ -15,9 +15,16 @@ use argon2::{
 };
 use bip39::Mnemonic;
 use bitcoin::hex::{Case, DisplayHex};
+use serde_json::{json, Value};
 use sqlx::sqlite::{SqliteError, SqliteQueryResult};
+use sqlx::types::Json;
 use sqlx::Row;
 use tokio::sync::Mutex; // Use tokio's Mutex
+
+struct WalletJSON {
+    id: String,
+    name: String,
+}
 
 pub struct Wallet {
     pub name: String,
@@ -55,6 +62,13 @@ impl Wallet {
         }
 
         accounts
+    }
+
+    pub fn serialize_res(&self) -> Value {
+        json!({
+        "id": self.id,
+        "name": self.name,
+        })
     }
 
     pub async fn authenticate(
