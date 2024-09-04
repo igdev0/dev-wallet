@@ -23,6 +23,7 @@ import { FormEventHandler, useCallback, useState } from "react";
 import { Check, Copy01, RefreshCw01 } from "@untitled-ui/icons-react";
 import useCreateWallet from "../hooks/use-create-wallet.ts";
 import Navbar from "../components/navbar.tsx";
+import InternalLink from "../components/internal-link.tsx";
 
 const INITIAL_STATE = {
   name: "",
@@ -239,6 +240,9 @@ export default function MnemonicScreen() {
             <Check />
           </Icon>
         </Button>
+        <InternalLink to="/authenticate" variant="teal">
+          Authenticate instead
+        </InternalLink>
       </Flex>
     </Screen>
   );
