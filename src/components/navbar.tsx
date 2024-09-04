@@ -1,17 +1,10 @@
-import {
-  Flex,
-  Heading,
-  IconButton,
-  useColorMode,
-  useToken,
-} from "@chakra-ui/react";
+import { Flex, Heading, IconButton, useColorMode } from "@chakra-ui/react";
 import { useCallback } from "react";
 import Logo from "./logo.tsx";
 import { Moon01, Plus, Sun } from "@untitled-ui/icons-react";
 
 export default function Navbar({ text = "" }) {
   const { colorMode, setColorMode } = useColorMode();
-  const [bdcDark, bdcLight] = useToken("colors", ["white", "black"]);
   const handleColorChange = useCallback(() => {
     setColorMode(colorMode === "light" ? "dark" : "light");
   }, [colorMode]);
