@@ -14,7 +14,6 @@ import {
   Text,
   Tooltip,
   useClipboard,
-  useToast,
 } from "@chakra-ui/react";
 import useMnemonics from "../hooks/use-mnemonics.ts";
 import Loading from "../components/loading.tsx";
@@ -44,7 +43,6 @@ interface InputError {
 export default function MnemonicScreen() {
   const mnemonics = useMnemonics();
   const createWalletMut = useCreateWallet();
-  const toast = useToast();
   const { onCopy, setValue } = useClipboard("");
   const [isCopyTooltipOpen, setIsCopyTooltipOpen] = useState(false);
   const [isRefreshTooltipOpen, setIsRefreshTooltipOpen] = useState(false);

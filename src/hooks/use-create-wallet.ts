@@ -7,10 +7,6 @@ export type VariablesType = {
   name: string;
 };
 
-export type AppError = {
-  message: string;
-};
-
 export type CreateWalletDataType = {
   name: string;
 };
