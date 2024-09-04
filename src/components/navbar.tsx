@@ -1,7 +1,7 @@
 import { Flex, Heading, IconButton, useColorMode } from "@chakra-ui/react";
 import { useCallback } from "react";
 import Logo from "./logo.tsx";
-import { Moon01, Plus, Sun } from "@untitled-ui/icons-react";
+import { Moon01, Sun } from "@untitled-ui/icons-react";
 
 export default function Navbar({ text = "" }) {
   const { colorMode, setColorMode } = useColorMode();
@@ -23,9 +23,6 @@ export default function Navbar({ text = "" }) {
         {text}
       </Heading>
       <Flex grow={1} alignItems="center" gap={2}>
-        <IconButton isRound={true} size="sm">
-          <Plus />
-        </IconButton>
         <IconButton aria-label="Theme" onClick={handleColorChange}>
           {colorMode === "dark" ? <Sun /> : <Moon01 />}
         </IconButton>
