@@ -22,6 +22,7 @@ import Screen from "../components/screen.tsx";
 import { FormEventHandler, useCallback, useState } from "react";
 import { Check, Copy01, RefreshCw01 } from "@untitled-ui/icons-react";
 import useCreateWallet from "../hooks/use-create-wallet.ts";
+import Navbar from "../components/navbar.tsx";
 
 const INITIAL_STATE = {
   name: "",
@@ -117,7 +118,8 @@ export default function MnemonicScreen() {
     return <Error error={mnemonics.error} />;
   }
   return (
-    <Screen title="Setting up">
+    <Screen>
+      <Navbar text="Setting up" />
       <Spacer mt={2} />
       <Heading size="sm">Important note:</Heading>
       <Box bg="gray.200" _dark={{ bg: "gray.900" }} p={2}>
