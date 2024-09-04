@@ -14,6 +14,7 @@ import {
   Text,
   Tooltip,
   useClipboard,
+  useToast,
 } from "@chakra-ui/react";
 import useMnemonics from "../hooks/use-mnemonics.ts";
 import Loading from "../components/loading.tsx";
@@ -41,7 +42,8 @@ interface InputError {
 
 export default function MnemonicScreen() {
   const mnemonics = useMnemonics();
-  const { onCopy, value, setValue, hasCopied } = useClipboard("");
+  const toast = useToast();
+  const { onCopy, setValue } = useClipboard("");
   const [isCopyTooltipOpen, setIsCopyTooltipOpen] = useState(false);
   const [isRefreshTooltipOpen, setIsRefreshTooltipOpen] = useState(false);
   const [error, setError] = useState<InputError>(null);
@@ -78,8 +80,20 @@ export default function MnemonicScreen() {
         });
         setState(JSON.parse(JSON.stringify(INITIAL_STATE)));
         setError(null);
+        toast({
+          title: "Wallet created",
+          description: "The wallet is been created",
+          isClosable: true,
+          status: "success",
+        });
       } catch (err) {
-        // handle errors
+        toast({
+          title: "Failed to create wallet",
+          description:
+            "There was some issue preventing the wallet from creation.",
+          isClosable: true,
+          status: "success",
+        });
       }
     },
     [state],
