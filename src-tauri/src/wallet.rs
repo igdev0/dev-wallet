@@ -15,6 +15,7 @@ use argon2::{
 };
 use bip39::Mnemonic;
 use bitcoin::hex::{Case, DisplayHex};
+use sqlx::sqlite::{SqliteError, SqliteQueryResult};
 use sqlx::Row;
 use tokio::sync::Mutex; // Use tokio's Mutex
 
@@ -101,7 +102,7 @@ impl Wallet {
         }
     }
 
-    pub async fn save(&self, db: &DbFacadePool) {
+    pub async fn save(&self, db: &DbFacadePool) -> Result<SqliteQueryResult, sqlx::Error> {
         let id = uuid::Uuid::new_v4().to_string();
         let password = &self.passphrase.as_ref().unwrap();
         let salt = SaltString::generate(OsRng);
@@ -117,7 +118,6 @@ impl Wallet {
             .bind(password)
             .execute(db)
             .await
-            .expect("Wasn't able to save");
     }
 }
 

@@ -22,9 +22,10 @@ import Error from "../components/error.tsx";
 import Screen from "../components/screen.tsx";
 import { FormEventHandler, useCallback, useState } from "react";
 import { Check, Copy01, RefreshCw01 } from "@untitled-ui/icons-react";
-import { invoke } from "@tauri-apps/api";
+import useCreateWallet from "../hooks/use-create-wallet.ts";
 
 const INITIAL_STATE = {
+  name: "",
   confirm_password: "",
   password: "",
 };
@@ -42,6 +43,7 @@ interface InputError {
 
 export default function MnemonicScreen() {
   const mnemonics = useMnemonics();
+  const createWalletMut = useCreateWallet();
   const toast = useToast();
   const { onCopy, setValue } = useClipboard("");
   const [isCopyTooltipOpen, setIsCopyTooltipOpen] = useState(false);
@@ -50,54 +52,38 @@ export default function MnemonicScreen() {
   const [state, setState] = useState<State>(
     JSON.parse(JSON.stringify(INITIAL_STATE)),
   );
-  const handleSubmit = useCallback<FormEventHandler>(
-    async (event) => {
-      event.preventDefault();
-      if (state.name.length === 0) {
-        return setError({
-          errorMessage: "This field is required",
-          fieldName: "name",
-        });
-      }
-      if (state.password !== state.confirm_password) {
-        return setError({
-          errorMessage: "The passwords are not matching",
-          fieldName: "confirm_password",
-        });
-      }
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    if (state.name.length === 0) {
+      return setError({
+        errorMessage: "This field is required",
+        fieldName: "name",
+      });
+    }
+    if (state.password !== state.confirm_password) {
+      return setError({
+        errorMessage: "The passwords are not matching",
+        fieldName: "confirm_password",
+      });
+    }
 
-      if (state.password.length === 0) {
-        return setError({
-          errorMessage: "The password is required",
-          fieldName: "password",
-        });
-      }
+    if (state.password.length === 0) {
+      return setError({
+        errorMessage: "The password is required",
+        fieldName: "password",
+      });
+    }
+    setError(null);
 
-      try {
-        const res = await invoke("create_wallet", {
-          password: state.password,
-          name: state.name,
-        });
-        setState(JSON.parse(JSON.stringify(INITIAL_STATE)));
-        setError(null);
-        toast({
-          title: "Wallet created",
-          description: "The wallet is been created",
-          isClosable: true,
-          status: "success",
-        });
-      } catch (err) {
-        toast({
-          title: "Failed to create wallet",
-          description:
-            "There was some issue preventing the wallet from creation.",
-          isClosable: true,
-          status: "success",
-        });
-      }
-    },
-    [state],
-  );
+    try {
+      await createWalletMut.mutateAsync({
+        password: state.password,
+        name: state.name,
+      });
+
+      setState(JSON.parse(JSON.stringify(INITIAL_STATE)));
+    } catch (_) {}
+  };
   const handleInputChange = useCallback<FormEventHandler<HTMLInputElement>>(
     (e) => {
       const { currentTarget } = e;
@@ -183,7 +169,7 @@ export default function MnemonicScreen() {
             </Code>
             <Spacer mt={2} />
             <FormControl isInvalid={error?.fieldName === "name"} as="fieldset">
-              <FormLabel htmlFor="password">Wallet name</FormLabel>
+              <FormLabel htmlFor="name">Wallet name</FormLabel>
               <Input
                 type="text"
                 name="name"

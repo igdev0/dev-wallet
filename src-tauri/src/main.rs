@@ -42,12 +42,16 @@ async fn create_wallet(
     wallet_builder.name(&name);
 
     let wallet = wallet_builder.build();
-    wallet.save(&db).await;
-    let result = json!({
-        name: wallet.name
+    let result = wallet.save(&db).await;
+
+    if let Err(err) = result {
+        return Err(err.to_string());
+    }
+
+    let parsed = json!({
+        "name": wallet.name
     });
-    Ok(result.to_string())
-    // wallet.name
+    Ok(parsed.to_string())
 }
 
 #[async_std::main]
