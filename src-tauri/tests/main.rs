@@ -1,4 +1,8 @@
-use std::rc::Rc;
+use std::{
+    borrow::{Borrow, BorrowMut},
+    future::IntoFuture,
+    sync::Arc,
+};
 
 use bip39::Mnemonic;
 use bitcoin::hex::{Case, DisplayHex};
@@ -108,8 +112,9 @@ async fn can_store_accounts_for_wallet() {
         .authenticate(&wallet_pass, &conn_facade.pool)
         .await
         .unwrap();
-    let accounts_ref = Rc::clone(&wallet.accounts);
-    let accounts_len = accounts_ref.borrow_mut().len();
+    let accounts_ref = Arc::clone(&wallet.accounts);
+    let accounts_ref = accounts_ref.lock().await;
+    let accounts_len = accounts_ref.len();
     assert!(accounts_len > 0);
 }
 
