@@ -3,11 +3,12 @@
 
 use bitcoin_wallet::{
     storage::{self, DbFacadePool},
-    wallet::WalletBuilder,
+    wallet::{Wallet, WalletBuilder},
+    WalletError,
 };
-use serde_json::json;
+use serde_json::{json, Value};
 use std::sync::Arc;
-use tauri::{Manager, State};
+use tauri::{App, Manager, State};
 use tokio::sync::Mutex;
 
 // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
@@ -27,6 +28,25 @@ async fn generate_mnemonic(state: State<'_, AppState>) -> Result<String, String>
     *m = mnemonics.clone();
 
     Ok(mnemonics)
+}
+
+#[tauri::command]
+async fn authenticate(
+    name: String,
+    password: String,
+    state: State<'_, AppState>,
+) -> Result<Value, String> {
+    let db = &state.db_pool.lock().await;
+    let wallet = WalletBuilder::from_existing(&name);
+    let auth_result = wallet.authenticate(&password, db).await;
+
+    if let Ok(wallet) = auth_result {
+        let value = wallet.serialize_res();
+        return Ok(value);
+    } else {
+        let err = auth_result.err().unwrap();
+        Err(err.serialize())
+    }
 }
 
 #[tauri::command]
@@ -69,7 +89,11 @@ async fn main() {
             app.manage(app_state);
             Ok(())
         })
-        .invoke_handler(tauri::generate_handler![generate_mnemonic, create_wallet])
+        .invoke_handler(tauri::generate_handler![
+            generate_mnemonic,
+            create_wallet,
+            authenticate
+        ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
