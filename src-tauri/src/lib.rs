@@ -22,3 +22,9 @@ pub enum WalletError {
     #[error("Unexpected error: {0}")]
     Unexpected(#[from] std::io::Error),
 }
+
+impl WalletError {
+    pub fn serialize(&self) -> String {
+        self.to_string()
+    }
+}
