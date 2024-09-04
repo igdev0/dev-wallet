@@ -135,11 +135,15 @@ export default function MnemonicScreen() {
       >
         <form id="create-wallet" onSubmit={handleSubmit}>
           <Box>
-            <Text>Your mnemonic</Text>
-            <Code position="relative" p={2} _light={{ bg: "gray.200" }}>
-              {mnemonics.data?.toString()}
-              <Flex gap={1} justifyContent="flex-end">
-                <Tooltip label="Copied!" hasArrow isOpen={isCopyTooltipOpen}>
+            <Flex gap={1} w="100%" justifyContent="space-between" mb={2}>
+              <Text>Your mnemonic</Text>
+              <Flex gap={2}>
+                <Tooltip
+                  label="Copied!"
+                  hasArrow
+                  isOpen={isCopyTooltipOpen}
+                  alignSelf="flex-end"
+                >
                   <IconButton
                     aria-label="copy"
                     size="sm"
@@ -164,6 +168,9 @@ export default function MnemonicScreen() {
                   </IconButton>
                 </Tooltip>
               </Flex>
+            </Flex>
+            <Code position="relative" p={2} _light={{ bg: "gray.200" }}>
+              {mnemonics.data?.toString()}
             </Code>
             <Spacer mt={2} />
             <FormControl isInvalid={error?.fieldName === "name"} as="fieldset">
