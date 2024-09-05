@@ -3,7 +3,6 @@
 
 use bitcoin::bip32::DerivationPath;
 use dev_wallet::{
-    account,
     storage::{self, DbFacadePool},
     wallet::WalletBuilder,
 };
@@ -85,7 +84,7 @@ async fn create_account(
     let auth_response = wallet_builder.authenticate(&password, db).await;
 
     match auth_response {
-        Ok(wallet) => {
+        Ok(mut wallet) => {
             let mut account_builder = wallet.create_account();
             let path = DerivationPath::from_str(&path);
 
@@ -103,8 +102,9 @@ async fn create_account(
             let account = account.unwrap();
             account.save(db).await;
 
-            let accounts = wallet.load_accounts(db).await;
-            let accounts_parsed: Vec<Value> = accounts.iter().map(|v| v.parse_as_json()).collect();
+            let wallet = wallet.load_accounts(db).await;
+            let accounts_parsed: Vec<Value> =
+                wallet.accounts.iter().map(|v| v.parse_as_json()).collect();
             Ok(json!({"accounts": accounts_parsed}))
         }
         Err(err) => return Err(err.to_string()),

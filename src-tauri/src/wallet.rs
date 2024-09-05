@@ -1,5 +1,5 @@
 use std::str::FromStr;
-use std::sync::Arc;
+use std::vec;
 
 use crate::account::{Account, AccountBuilder};
 
@@ -17,13 +17,12 @@ use bitcoin::hex::{Case, DisplayHex};
 use serde_json::{json, Value};
 use sqlx::sqlite::SqliteQueryResult;
 use sqlx::Row;
-use tokio::sync::Mutex; // Use tokio's Mutex
 
 pub struct Wallet {
     pub name: String,
     seed: Option<String>,
     pub id: Option<String>,
-    pub accounts: Arc<Mutex<Vec<Account>>>, // Using tokio::sync::Mutex
+    pub accounts: Vec<Account>, // Using tokio::sync::Mutex
     passphrase: Option<String>,
 }
 
@@ -45,7 +44,7 @@ impl Wallet {
         encrypt(&key, seed.as_bytes()).to_hex_string(Case::Lower)
     }
 
-    pub async fn load_accounts(&self, db: &DbFacadePool) -> Vec<Account> {
+    pub async fn load_accounts(&mut self, db: &DbFacadePool) -> Wallet {
         let account_results = sqlx::query("SELECT * from accounts WHERE wallet_id = ?;")
             .bind(&self.id)
             .fetch_all(db)
@@ -56,7 +55,13 @@ impl Wallet {
             accounts.push(Account::from_entry(acc));
         }
 
-        accounts
+        Wallet {
+            accounts,
+            id: self.id.clone(),
+            name: self.name.clone(),
+            passphrase: self.passphrase.clone(),
+            seed: self.seed.clone(),
+        }
     }
 
     pub fn serialize_res(&self) -> Value {
@@ -94,7 +99,6 @@ impl Wallet {
             let wallet_name: String = data.get("name");
             let password_hash: String = data.get("password");
             let argon2 = Argon2::default();
-            self.id = Some(id.clone());
             let parsed_password =
                 PasswordHash::new(&password_hash).expect("Failed to parse password");
 
@@ -107,7 +111,6 @@ impl Wallet {
             let seed: String = data.get("seed");
             let seed = hex::decode(seed).unwrap();
             let config = Config::from_env();
-            let accounts = self.load_accounts(db).await;
 
             let mut key = [0u8; 32];
             key.copy_from_slice(config.database_key.as_bytes());
@@ -117,14 +120,13 @@ impl Wallet {
                 name: wallet_name,
                 passphrase: None,
                 seed: Some(decrypt(&key, &seed).to_hex_string(Case::Lower)),
-                accounts: Arc::new(Mutex::new(accounts)),
+                accounts: vec![],
             });
-        } else {
-            Err(WalletError::NotFound)
         }
+        Err(WalletError::NotFound)
     }
 
-    pub async fn save(&self, db: &DbFacadePool) -> Result<SqliteQueryResult, sqlx::Error> {
+    pub async fn save(&self, db: &DbFacadePool) -> Result<Wallet, WalletError> {
         let id = uuid::Uuid::new_v4().to_string();
         let password = &self.passphrase.as_ref().unwrap();
         let salt = SaltString::generate(OsRng);
@@ -133,13 +135,26 @@ impl Wallet {
             .hash_password(password.as_bytes(), &salt)
             .expect("Failed hashing password")
             .to_string();
-        sqlx::query("INSERT into wallets (id, name, seed, password) values(?,?,?,?);")
-            .bind(id)
+        let result = sqlx::query("INSERT into wallets (id, name, seed, password) values(?,?,?,?);")
+            .bind(id.clone())
             .bind(self.name.clone())
             .bind(&self.encrypted_seed())
             .bind(password)
             .execute(db)
-            .await
+            .await;
+        if let Err(_) = result {
+            return Err(WalletError::InvalidInput(
+                "Invalid input provided".to_string(),
+            ));
+        }
+
+        Ok(Wallet {
+            accounts: vec![],
+            name: self.name.clone(),
+            id: Some(id),
+            seed: self.seed.clone(),
+            passphrase: self.passphrase.clone(),
+        })
     }
 }
 
@@ -162,7 +177,7 @@ impl WalletBuilder {
         Wallet {
             id: None,
             name: name.to_string(),
-            accounts: Arc::new(Mutex::new(Vec::new())), // Use tokio::sync::Mutex here too
+            accounts: vec![], // Use tokio::sync::Mutex here too
             passphrase: Some("passpharse".to_string()),
             seed: None,
         }
@@ -172,7 +187,7 @@ impl WalletBuilder {
         Wallet {
             id: Some(id.to_string()),
             name: "".to_string(),
-            accounts: Arc::new(Mutex::new(Vec::new())), // Use tokio::sync::Mutex here too
+            accounts: vec![], // Use tokio::sync::Mutex here too
             passphrase: Some("passpharse".to_string()),
             seed: None,
         }
@@ -202,7 +217,7 @@ impl WalletBuilder {
             name: self.name.unwrap(),
             seed: Some(seed.to_hex_string(Case::Lower)),
             passphrase: Some(passphrase),
-            accounts: Arc::new(Mutex::new(Vec::new())), // Use tokio::sync::Mutex
+            accounts: vec![], // Use tokio::sync::Mutex
         }
     }
 }

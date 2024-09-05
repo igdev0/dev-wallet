@@ -1,6 +1,5 @@
 use bitcoin::{
     bip32::{DerivationPath, Xpriv},
-    block::ValidationError,
     secp256k1, Address, CompressedPublicKey, Network, NetworkKind, PrivateKey, PubkeyHash,
 };
 use serde_json::{json, Value};

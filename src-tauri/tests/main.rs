@@ -1,5 +1,3 @@
-use std::sync::Arc;
-
 use bip39::Mnemonic;
 use bitcoin::hex::{Case, DisplayHex};
 use dev_wallet::{
@@ -87,31 +85,31 @@ async fn can_store_accounts_for_wallet() {
     let mnemonic = mnemonic_helper();
 
     let mut wallet = WalletBuilder::new(&mnemonic.to_string());
-    let wallet_name = "Main wallet";
+
+    let wallet_name = "Secondary wallet";
     let wallet_pass = "PassPhrase";
+
     wallet.passphrase(&wallet_pass);
     wallet.name(&wallet_name);
-    wallet.build().save(&conn_facade.pool).await.unwrap();
-    let mut wallet = WalletBuilder::from_existing(&wallet_name);
+    let mut wallet = wallet.build().save(&conn_facade.pool).await.unwrap();
+    println!("Wallet ID: {}", wallet.id.clone().unwrap());
 
-    let mut wallet = wallet
+    let mut new_wallet = wallet
         .authenticate(&wallet_pass, &conn_facade.pool)
         .await
         .unwrap();
 
-    let account_builder = wallet.create_account();
+    let account_builder = new_wallet.create_account();
     let account = account_builder.build().unwrap();
     account.save(&conn_facade.pool).await;
 
-    // Now lets try to load the wallet + accounts
-    let wallet = wallet
+    // // Now lets try to load the wallet + accounts
+    let new_wallet = new_wallet
         .authenticate(&wallet_pass, &conn_facade.pool)
         .await
         .unwrap();
-    let accounts_ref = Arc::clone(&wallet.accounts);
-    let accounts_ref = accounts_ref.lock().await;
-    let accounts_len = accounts_ref.len();
-    assert!(accounts_len > 0);
+    let accounts = &new_wallet.accounts;
+    assert!(accounts.len() > 0);
 }
 
 #[test]
