@@ -16,8 +16,7 @@ use argon2::{
 use bip39::Mnemonic;
 use bitcoin::hex::{Case, DisplayHex};
 use serde_json::{json, Value};
-use sqlx::sqlite::{SqliteError, SqliteQueryResult};
-use sqlx::types::Json;
+use sqlx::sqlite::{SqliteQueryResult};
 use sqlx::Row;
 use tokio::sync::Mutex; // Use tokio's Mutex
 

@@ -3,12 +3,11 @@
 
 use bitcoin_wallet::{
     storage::{self, DbFacadePool},
-    wallet::{Wallet, WalletBuilder},
-    WalletError,
+    wallet::WalletBuilder,
 };
 use serde_json::{json, Value};
 use std::sync::Arc;
-use tauri::{App, Manager, State};
+use tauri::{Manager, State};
 use tokio::sync::Mutex;
 
 // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
