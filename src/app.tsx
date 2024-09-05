@@ -1,5 +1,5 @@
 import { BrowserRouter, Route, Routes } from "react-router-dom";
-import MnemonicScreen from "./screens/create-wallet.tsx";
+import CreateWalletScreen from "./screens/create-wallet.tsx";
 import { useAppState } from "./state.ts";
 import AuthenticateScreen from "./screens/authenticate.tsx";
 
@@ -14,7 +14,8 @@ function App() {
           path="/authenticate"
           element={<AuthenticateScreen />}
         />
-        <Route index={true} path="/" element={<MnemonicScreen />} />
+        <Route index={true} path="/" element={<CreateWalletScreen />} />
+        {/*<Route index={true} path="/accounts/:wallet_id" element={<MnemonicScreen />} />*/}
       </Routes>
     </BrowserRouter>
   );
