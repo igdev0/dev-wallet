@@ -1,7 +1,7 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-use bitcoin_wallet::{
+use dev_wallet::{
     storage::{self, DbFacadePool},
     wallet::WalletBuilder,
 };
@@ -19,9 +19,7 @@ struct AppState {
 
 #[tauri::command]
 async fn generate_mnemonic(state: State<'_, AppState>) -> Result<String, String> {
-    let mnemonics: String = bitcoin_wallet::utils::generate_mnemonic()
-        .unwrap()
-        .to_string();
+    let mnemonics: String = dev_wallet::utils::generate_mnemonic().unwrap().to_string();
 
     let mut m = state.mnemonics.lock().await;
     *m = mnemonics.clone();

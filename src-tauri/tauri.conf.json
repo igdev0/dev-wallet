@@ -7,7 +7,7 @@
     "distDir": "../dist"
   },
   "package": {
-    "productName": "bitcoin-wallet",
+    "productName": "Dev Wallet",
     "version": "0.0.0"
   },
   "tauri": {
@@ -20,7 +20,7 @@
     },
     "windows": [
       {
-        "title": "bitcoin-wallet",
+        "title": "Dev wallet",
         "width": 800,
         "height": 600
       }

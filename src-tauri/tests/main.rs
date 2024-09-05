@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use bip39::Mnemonic;
 use bitcoin::hex::{Case, DisplayHex};
-use bitcoin_wallet::{
+use dev_wallet::{
     account::AccountBuilder,
     path_builder::PathBuilder,
     storage::{self},
