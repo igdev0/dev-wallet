@@ -66,7 +66,7 @@ export default function AuthenticateScreen() {
     <Screen>
       <Navbar />
       <Flex
-        maxWidth={400}
+        maxWidth={500}
         mx="auto"
         flexDirection="column"
         height="100%"
