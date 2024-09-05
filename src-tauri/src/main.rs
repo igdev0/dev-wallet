@@ -1,12 +1,14 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+use bitcoin::bip32::DerivationPath;
 use dev_wallet::{
+    account,
     storage::{self, DbFacadePool},
     wallet::WalletBuilder,
 };
 use serde_json::{json, Value};
-use std::sync::Arc;
+use std::{str::FromStr, sync::Arc};
 use tauri::{Manager, State};
 use tokio::sync::Mutex;
 
@@ -34,7 +36,7 @@ async fn authenticate(
     state: State<'_, AppState>,
 ) -> Result<Value, String> {
     let db = &state.db_pool.lock().await;
-    let wallet = WalletBuilder::from_existing(&name);
+    let mut wallet = WalletBuilder::from_existing(&name);
     let auth_result = wallet.authenticate(&password, db).await;
 
     if let Ok(wallet) = auth_result {
@@ -71,6 +73,44 @@ async fn create_wallet(
     Ok(parsed.to_string())
 }
 
+#[tauri::command]
+async fn create_account(
+    path: String,
+    wallet_id: String,
+    password: String,
+    state: State<'_, AppState>,
+) -> Result<Value, String> {
+    let db = &state.db_pool.lock().await;
+    let mut wallet_builder = WalletBuilder::from_existing_id(&wallet_id);
+    let auth_response = wallet_builder.authenticate(&password, db).await;
+
+    match auth_response {
+        Ok(wallet) => {
+            let mut account_builder = wallet.create_account();
+            let path = DerivationPath::from_str(&path);
+
+            if let Err(_) = path {
+                return Err("Derivation path incorrect".to_string());
+            }
+            let path = path.unwrap();
+            account_builder.path(path);
+            let account = account_builder.build();
+
+            if let Err(e) = account {
+                return Err(e.to_string());
+            }
+
+            let account = account.unwrap();
+            account.save(db).await;
+
+            let accounts = wallet.load_accounts(db).await;
+            let accounts_parsed: Vec<Value> = accounts.iter().map(|v| v.parse_as_json()).collect();
+            Ok(json!({"accounts": accounts_parsed}))
+        }
+        Err(err) => return Err(err.to_string()),
+    }
+}
+
 #[async_std::main]
 async fn main() {
     let db_pool = storage::DbFacade::new(None).await;
@@ -89,7 +129,8 @@ async fn main() {
         .invoke_handler(tauri::generate_handler![
             generate_mnemonic,
             create_wallet,
-            authenticate
+            authenticate,
+            create_account
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

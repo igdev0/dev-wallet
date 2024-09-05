@@ -21,8 +21,8 @@ use tokio::sync::Mutex; // Use tokio's Mutex
 
 pub struct Wallet {
     pub name: String,
-    seed: String,
-    id: Option<String>,
+    seed: Option<String>,
+    pub id: Option<String>,
     pub accounts: Arc<Mutex<Vec<Account>>>, // Using tokio::sync::Mutex
     passphrase: Option<String>,
 }
@@ -31,21 +31,23 @@ impl Wallet {
     pub fn create_account(&self) -> AccountBuilder {
         let mut account_builder = AccountBuilder::new();
         let id = &self.id.clone().expect("Wasn't able to initiate the account builder, make sure you save the wallet first, before trying to create the account.");
+        let seed = &self.seed.clone().unwrap();
         account_builder.wallet_id(id.to_string());
-        account_builder.seed(&self.seed);
+        account_builder.seed(&seed);
         account_builder
     }
 
     fn encrypted_seed(&self) -> String {
         let config = Config::from_env();
         let mut key = [0u8; 32];
+        let seed = &self.seed.clone().unwrap();
         key.copy_from_slice(config.database_key.as_bytes());
-        encrypt(&key, self.seed.as_bytes()).to_hex_string(Case::Lower)
+        encrypt(&key, seed.as_bytes()).to_hex_string(Case::Lower)
     }
 
-    async fn load_accounts(&self, id: &String, db: &DbFacadePool) -> Vec<Account> {
+    pub async fn load_accounts(&self, db: &DbFacadePool) -> Vec<Account> {
         let account_results = sqlx::query("SELECT * from accounts WHERE wallet_id = ?;")
-            .bind(&id)
+            .bind(&self.id)
             .fetch_all(db)
             .await
             .expect("Wasn't able to fetch accounts for wallet");
@@ -65,21 +67,34 @@ impl Wallet {
     }
 
     pub async fn authenticate(
-        &self,
+        &mut self,
         password: &str,
         db: &DbFacadePool,
     ) -> Result<Wallet, WalletError> {
-        let result = sqlx::query("SELECT * FROM wallets WHERE name = ?;")
-            .bind(&self.name)
-            .fetch_one(db)
-            .await;
+        let query = {
+            if let Some(_) = &self.id {
+                "SELECT * FROM wallets WHERE wallet_id = ?;"
+            } else {
+                "SELECT * FROM wallets WHERE name = ?;"
+            }
+        };
+
+        let bind = {
+            if let Some(id) = &self.id {
+                id
+            } else {
+                &self.name
+            }
+        };
+
+        let result = sqlx::query(query).bind(bind).fetch_one(db).await;
 
         if let Ok(data) = result {
             let id: String = data.get("id");
             let wallet_name: String = data.get("name");
             let password_hash: String = data.get("password");
             let argon2 = Argon2::default();
-
+            self.id = Some(id.clone());
             let parsed_password =
                 PasswordHash::new(&password_hash).expect("Failed to parse password");
 
@@ -92,7 +107,7 @@ impl Wallet {
             let seed: String = data.get("seed");
             let seed = hex::decode(seed).unwrap();
             let config = Config::from_env();
-            let accounts = self.load_accounts(&id, db).await;
+            let accounts = self.load_accounts(db).await;
 
             let mut key = [0u8; 32];
             key.copy_from_slice(config.database_key.as_bytes());
@@ -101,7 +116,7 @@ impl Wallet {
                 id: Some(id),
                 name: wallet_name,
                 passphrase: None,
-                seed: decrypt(&key, &seed).to_hex_string(Case::Lower),
+                seed: Some(decrypt(&key, &seed).to_hex_string(Case::Lower)),
                 accounts: Arc::new(Mutex::new(accounts)),
             });
         } else {
@@ -148,8 +163,18 @@ impl WalletBuilder {
             id: None,
             name: name.to_string(),
             accounts: Arc::new(Mutex::new(Vec::new())), // Use tokio::sync::Mutex here too
-            passphrase: Some("".to_string()),
-            seed: "".to_string(),
+            passphrase: Some("passpharse".to_string()),
+            seed: None,
+        }
+    }
+
+    pub fn from_existing_id(id: &str) -> Wallet {
+        Wallet {
+            id: Some(id.to_string()),
+            name: "".to_string(),
+            accounts: Arc::new(Mutex::new(Vec::new())), // Use tokio::sync::Mutex here too
+            passphrase: Some("passpharse".to_string()),
+            seed: None,
         }
     }
 
@@ -175,7 +200,7 @@ impl WalletBuilder {
         Wallet {
             id: None,
             name: self.name.unwrap(),
-            seed: seed.to_hex_string(Case::Lower),
+            seed: Some(seed.to_hex_string(Case::Lower)),
             passphrase: Some(passphrase),
             accounts: Arc::new(Mutex::new(Vec::new())), // Use tokio::sync::Mutex
         }

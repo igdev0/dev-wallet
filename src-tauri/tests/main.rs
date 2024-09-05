@@ -50,7 +50,7 @@ async fn load_wallet() {
     wallet.name(&wallet_name);
     wallet.build().save(&conn_facade.pool).await.unwrap();
 
-    let wallet = WalletBuilder::from_existing("Main wallet");
+    let mut wallet = WalletBuilder::from_existing("Main wallet");
     let wallet = wallet.authenticate(&wallet_pass, &conn_facade.pool).await;
 
     assert_eq!(wallet.unwrap().name, "Main wallet")
@@ -92,9 +92,9 @@ async fn can_store_accounts_for_wallet() {
     wallet.passphrase(&wallet_pass);
     wallet.name(&wallet_name);
     wallet.build().save(&conn_facade.pool).await.unwrap();
-    let wallet = WalletBuilder::from_existing(&wallet_name);
+    let mut wallet = WalletBuilder::from_existing(&wallet_name);
 
-    let wallet = wallet
+    let mut wallet = wallet
         .authenticate(&wallet_pass, &conn_facade.pool)
         .await
         .unwrap();

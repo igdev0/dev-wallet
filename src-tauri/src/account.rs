@@ -1,7 +1,9 @@
 use bitcoin::{
     bip32::{DerivationPath, Xpriv},
+    block::ValidationError,
     secp256k1, Address, CompressedPublicKey, Network, NetworkKind, PrivateKey, PubkeyHash,
 };
+use serde_json::{json, Value};
 use sqlx::sqlite::SqliteRow;
 
 use crate::{path_builder::PathBuilder, storage::DbFacadePool, WalletError};
@@ -81,6 +83,16 @@ impl Account {
             path,
             wallet_id,
         }
+    }
+
+    pub fn parse_as_json(&self) -> Value {
+        json!({
+            "address": self.address,
+            "id": self.id.clone().unwrap(),
+            "path": self.path,
+            "wallet_id": self.wallet_id,
+            "index": self.index
+        })
     }
 }
 
