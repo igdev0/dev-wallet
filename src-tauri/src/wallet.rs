@@ -1,6 +1,5 @@
 use std::str::FromStr;
 use std::sync::Arc;
-// use tokio::s
 
 use crate::account::{Account, AccountBuilder};
 
@@ -16,14 +15,9 @@ use argon2::{
 use bip39::Mnemonic;
 use bitcoin::hex::{Case, DisplayHex};
 use serde_json::{json, Value};
-use sqlx::sqlite::{SqliteQueryResult};
+use sqlx::sqlite::SqliteQueryResult;
 use sqlx::Row;
 use tokio::sync::Mutex; // Use tokio's Mutex
-
-struct WalletJSON {
-    id: String,
-    name: String,
-}
 
 pub struct Wallet {
     pub name: String,

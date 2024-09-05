@@ -1,6 +1,4 @@
-use std::{
-    sync::Arc,
-};
+use std::sync::Arc;
 
 use bip39::Mnemonic;
 use bitcoin::hex::{Case, DisplayHex};
@@ -35,7 +33,7 @@ async fn create_wallet() {
 
     let wallet = wallet.build();
 
-    wallet.save(&db).await;
+    wallet.save(&db).await.unwrap();
 }
 
 #[tokio::test]
@@ -50,7 +48,7 @@ async fn load_wallet() {
     let wallet_pass = "PassPhrase";
     wallet.passphrase(&wallet_pass);
     wallet.name(&wallet_name);
-    wallet.build().save(&conn_facade.pool).await;
+    wallet.build().save(&conn_facade.pool).await.unwrap();
 
     let wallet = WalletBuilder::from_existing("Main wallet");
     let wallet = wallet.authenticate(&wallet_pass, &conn_facade.pool).await;
@@ -93,7 +91,7 @@ async fn can_store_accounts_for_wallet() {
     let wallet_pass = "PassPhrase";
     wallet.passphrase(&wallet_pass);
     wallet.name(&wallet_name);
-    wallet.build().save(&conn_facade.pool).await;
+    wallet.build().save(&conn_facade.pool).await.unwrap();
     let wallet = WalletBuilder::from_existing(&wallet_name);
 
     let wallet = wallet
