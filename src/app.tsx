@@ -2,6 +2,7 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import CreateWalletScreen from "./screens/create-wallet.tsx";
 import { useAppState } from "./state.ts";
 import AuthenticateScreen from "./screens/authenticate.tsx";
+import AccountsScreen from "./screens/accounts.tsx";
 
 function App() {
   const appState = useAppState();
@@ -9,13 +10,9 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route
-          index={true}
-          path="/authenticate"
-          element={<AuthenticateScreen />}
-        />
         <Route index={true} path="/" element={<CreateWalletScreen />} />
-        {/*<Route index={true} path="/accounts/:wallet_id" element={<MnemonicScreen />} />*/}
+        <Route path="/authenticate" element={<AuthenticateScreen />} />
+        <Route path="/accounts/:wallet_id" element={<AccountsScreen />} />
       </Routes>
     </BrowserRouter>
   );
