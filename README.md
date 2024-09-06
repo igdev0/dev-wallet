@@ -6,7 +6,7 @@ The goal of this project is to develop a wallet which empowers developers to dev
 - **Authentication**: Pretty straight forward, it will enable you to authenticate on your wallet, via some GUI;
 - **Wallet management**: Thsi feature will let you to create and delete wallets (and associated accounts) and update certain things like wallet name, via some GUI;
 - **Account management** : This feature will let you derrive accounts from the wallet seed, via some GUI;
-- 
+  
 ## Supported Platforms
 
 The Dev Wallet will be available on the following platforms:
