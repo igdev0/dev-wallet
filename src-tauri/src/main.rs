@@ -118,7 +118,7 @@ async fn main() {
 
     let app_state = AppState {
         mnemonics: Arc::new(Mutex::new(String::from(""))),
-        db_pool: Arc::new(Mutex::new(db_pool.pool)),
+        db_pool: Arc::new(Mutex::new(db_pool)),
     };
 
     tauri::Builder::default()

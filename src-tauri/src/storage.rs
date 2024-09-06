@@ -1,15 +1,12 @@
 use sqlx::{migrate::MigrateDatabase, sqlite::SqlitePoolOptions, Pool, Sqlite};
-
 pub enum ConnectionType {
     InMemory,
     OnDisk,
 }
 
 pub type DbFacadePool = Pool<Sqlite>;
-pub struct DbFacade {
-    pub pool: DbFacadePool,
-}
 
+pub struct DbFacade(DbFacadePool);
 impl DbFacade {
     pub async fn new(url: Option<&str>) -> Self {
         let connection_url = url.unwrap_or("sqlite://database.db");
@@ -28,10 +25,10 @@ impl DbFacade {
             .connect(&connection_url)
             .await
             .unwrap();
-        DbFacade { pool: connection }
+        DbFacade(connection)
     }
 
     pub async fn migrate(&self) {
-        sqlx::migrate!().run(&self.pool).await.unwrap()
+        sqlx::migrate!().run(&self.0).await.unwrap()
     }
 }
