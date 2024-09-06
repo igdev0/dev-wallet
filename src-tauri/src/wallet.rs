@@ -15,7 +15,6 @@ use argon2::{
 use bip39::Mnemonic;
 use bitcoin::hex::{Case, DisplayHex};
 use serde_json::{json, Value};
-use sqlx::sqlite::SqliteQueryResult;
 use sqlx::Row;
 
 pub struct Wallet {
