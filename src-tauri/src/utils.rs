@@ -19,6 +19,8 @@ pub fn generate_mnemonic() -> Result<Mnemonic, bip39::Error> {
     Mnemonic::from_entropy(&entropy)
 }
 
+pub type AESKey = [u8; 32];
+
 /// Encrypts the given plaintext using AES-GCM.
 ///
 /// # Arguments
@@ -29,15 +31,13 @@ pub fn generate_mnemonic() -> Result<Mnemonic, bip39::Error> {
 /// # Returns
 ///
 /// An vector containing the nonce and the ciphertext as bytes.
-pub fn encrypt(key: &[u8; 32], plaintext: &[u8]) -> Vec<u8> {
+pub fn encrypt(key: &AESKey, data: &[u8]) -> Vec<u8> {
     // Create AES-GCM cipher
     let cipher = Aes256Gcm::new(GenericArray::from_slice(key));
 
     // Generate a random nonce
     let nonce = Aes256Gcm::generate_nonce(&mut OsRng); // 96-bits; unique per message
-    let ciphertext = cipher
-        .encrypt(&nonce, plaintext)
-        .expect("encryption failure!");
+    let ciphertext = cipher.encrypt(&nonce, data).expect("encryption failure!");
 
     [nonce.as_slice(), ciphertext.as_slice()].concat()
 }
@@ -52,15 +52,15 @@ pub fn encrypt(key: &[u8; 32], plaintext: &[u8]) -> Vec<u8> {
 /// # Returns
 ///
 /// The decrypted plaintext.
-pub fn decrypt(key: &[u8; 32], encrypted_data: &[u8]) -> Vec<u8> {
+pub fn decrypt(key: &AESKey, data: &[u8]) -> Vec<u8> {
     // Create AES-GCM cipher
     let cipher = Aes256Gcm::new(GenericArray::from_slice(key));
 
     // Convert nonce slice to Nonce type
-    let (nonce, ciphertext) = encrypted_data.split_at(12); // 96-bits; unique per message
-    let plaintext = cipher
+    let (nonce, ciphertext) = data.split_at(12); // 96-bits; unique per message
+    let decrypted = cipher
         .decrypt(Nonce::from_slice(nonce), ciphertext)
         .expect("decryption failure!");
 
-    plaintext
+    decrypted
 }
