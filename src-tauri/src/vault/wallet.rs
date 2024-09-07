@@ -8,9 +8,7 @@ use rand_core::{self, OsRng};
 use argon2::{
     password_hash::{rand_core::OsRng, PasswordHash, PasswordHasher, PasswordVerifier, SaltString},
     Argon2, Params,
-};
-use bip39::Mnemonic;
-use rand_core::OsRng;
+}
 
 use crate::utils::encrypt;
 
@@ -87,12 +85,11 @@ impl WalletInputBuilder {
 
         let seed = self
             .mnemonic
-            .to_seed(&self.password)
-            .to_hex_string(Case::Lower);
+            .to_seed(&self.password);
 
         StoreWalletInput {
             encrypted_pass: password.to_string(),
-            encrypted_seed: seed,
+            encrypted_seed: encrypt(&key, &seed).to_hex_string(Case::Lower),
             name: self.name.to_string(),
         }
     }
