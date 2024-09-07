@@ -1,13 +1,18 @@
+use core::hash;
+
 use bip39::Mnemonic;
-use rand::RngCore;
+use bitcoin::hex::{Case, DisplayHex};
+use rand::{Rng, RngCore};
 use rand_core::{self, OsRng};
 
 use argon2::{
     password_hash::{rand_core::OsRng, PasswordHash, PasswordHasher, PasswordVerifier, SaltString},
-    Argon2,
+    Argon2, Params,
 };
 use bip39::Mnemonic;
 use rand_core::OsRng;
+
+use crate::utils::encrypt;
 
 #[derive(Default, Debug)]
 pub struct WalletModel {
@@ -69,9 +74,26 @@ impl WalletInputBuilder {
         self.mnemonic = Mnemonic::from_entropy(&entropy).expect("Mnemonic generation fail");
     }
 
-    pub fn build() -> StoreWalletInput {
+    pub fn build(&self) -> StoreWalletInput {
+        let salt = SaltString::generate(&mut OsRng);
+        let hasher = Argon2::default();
+        let password = hasher
+            .hash_password(&self.password.as_bytes(), &salt)
+            .expect("Failed hashing the password");
+
+        let aes_key = &password.clone().hash.unwrap();
+        let mut key: [u8; 32] = [0u8; 32];
+        key.copy_from_slice(&aes_key.as_bytes()[..32]);
+
+        let seed = self
+            .mnemonic
+            .to_seed(&self.password)
+            .to_hex_string(Case::Lower);
+
         StoreWalletInput {
-            ..Default::default()
+            encrypted_pass: password.to_string(),
+            encrypted_seed: seed,
+            name: self.name.to_string(),
         }
     }
 }
