@@ -1,3 +1,4 @@
+use aes_gcm::Aes256Gcm;
 use async_trait::async_trait;
 use thiserror::Error;
 

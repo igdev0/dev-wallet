@@ -128,12 +128,6 @@ impl Wallet {
     pub async fn save(&self, db: &DbFacadePool) -> Result<Wallet, WalletError> {
         let id = uuid::Uuid::new_v4().to_string();
         let password = &self.passphrase.as_ref().unwrap();
-        let salt = SaltString::generate(OsRng);
-        let argon2 = Argon2::default();
-        let password = argon2
-            .hash_password(password.as_bytes(), &salt)
-            .expect("Failed hashing password")
-            .to_string();
         let result = sqlx::query("INSERT into wallets (id, name, seed, password) values(?,?,?,?);")
             .bind(id.clone())
             .bind(self.name.clone())
