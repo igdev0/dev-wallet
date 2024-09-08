@@ -10,6 +10,8 @@ use super::{
 pub enum VaultError {
     #[error("Entity not found")]
     NotFound,
+    #[error("Failed listing")]
+    Listing,
     #[error("Parsing error")]
     Parser
 }
