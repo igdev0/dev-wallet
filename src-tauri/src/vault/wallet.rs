@@ -127,4 +127,28 @@ mod tests {
 
         assert!(model.seed.len() > 0);
     }
+
+    #[test]
+    fn can_create_wallet_input_from_mnemonic() {
+        let mut entropy = [0u8; 32];
+        let mut rng = OsRng;
+        rng.fill_bytes(&mut entropy);
+        let mnemonic = Mnemonic::from_entropy(&entropy).expect("Mnemonic generation fail");
+
+        let res = WalletInputBuilder::from(mnemonic);
+        assert_eq!(res.name, "name");
+        assert_eq!(res.password, "password"); // not encrypted
+        assert!(res.mnemonic.to_string().len() > 0);
+
+        let wallet_input = res.build();
+
+        assert_eq!(wallet_input.name, "name");
+        assert_ne!(wallet_input.encrypted_pass, "password"); // is encrypted now
+
+        let model = WalletModel::from(wallet_input);
+
+        assert!(model.id.len() > 0);
+
+        assert!(model.seed.len() > 0);
+    }
 }
