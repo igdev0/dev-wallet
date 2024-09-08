@@ -7,6 +7,19 @@ pub struct AccountModel {
     pub created_at: Option<String>,
 }
 
+#[derive(Debug, Default)]
+pub enum Blockchain {
+    #[default]
+    Bitcoin,
+}
+
+#[derive(Debug, Default)]
+pub enum Network {
+    #[default]
+    Mainnet,
+    Testnet,
+}
+
 impl From<StoreAccountInput> for AccountModel {
     fn from(value: StoreAccountInput) -> Self {
         Self {
@@ -24,10 +37,17 @@ pub struct StoreAccountInput {
     wallet_id: String,
     address: String,
     encrypted_path: String,
-    index: usize,
+    blockchain: Blockchain,
+    network: Network,
 }
 
 #[derive(Default, Debug)]
 pub struct AccountInputBuilder {
     path: String,
+    blockchain: Blockchain,
+    network: Network,
+}
+
+impl AccountInputBuilder {
+    pub fn new() {}
 }
