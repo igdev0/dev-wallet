@@ -109,6 +109,17 @@ impl SqliteVault {
         Self(connection)
     }
 
+    pub fn parse_wallet(entry: &SqliteRow) -> VaultResult<WalletModel> {
+        let id: String = entry.get("id");
+        let name: String = entry.get("name");
+
+        Ok(WalletModel {
+            id,
+            name,
+            ..Default::default()
+        })
+    }
+
     pub fn parse_account(entry: &SqliteRow) -> VaultResult<AccountModel> {
         let id: String = entry.get("id");
         let path: String = entry.get("path");
