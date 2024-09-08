@@ -1,10 +1,10 @@
 #[derive(Default, Debug)]
 pub struct AccountModel {
     pub id: String,
-    pub address: &'static str,
+    pub address: String,
     pub index: usize,
-    pub path: &'static str,
-    pub created_at: Option<&'static str>,
+    pub path: String,
+    pub created_at: Option<String>,
 }
 
 impl From<StoreAccountInput> for AccountModel {
@@ -21,8 +21,10 @@ impl From<StoreAccountInput> for AccountModel {
 
 #[derive(Default, Debug)]
 pub struct StoreAccountInput {
-    pub wallet_id: &'static str,
-    pub address: &'static str,
-    pub encrypted_path: &'static str,
-    pub index: usize,
+    wallet_id: String,
+    address: String,
+    encrypted_path: String,
+    index: usize,
 }
+
+impl StoreAccountInput {}
