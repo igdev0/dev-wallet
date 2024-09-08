@@ -36,11 +36,31 @@ impl VaultInterface for SqliteVault {
 
         let entry = res.expect("Failed to unwrap account by id query");
 
-        SqliteVault::parse_account(entry)
+        SqliteVault::parse_account(&entry)
     }
 
-    async fn get_all_accounts(&self, id: &str) -> VaultResult<Vec<AccountModel>> {
-        Ok(vec![AccountModel::default()])
+    async fn get_all_accounts(&self, wallet_id: &str) -> VaultResult<Vec<AccountModel>> {
+        let res = sqlx::query("SELECT * from accounts WHERE wallet_id = ?;")
+            .bind(wallet_id)
+            .fetch_all(&self.0)
+            .await;
+
+        if let Err(_) = res {
+            return Err(VaultError::Listing);
+        }
+
+        let results = res.unwrap();
+
+        let mut accounts = vec![];
+        for acc in results.iter() {
+            let account = SqliteVault::parse_account(acc);
+            if let Err(err) = account {
+                return Err(err);
+            }
+            accounts.push(account.unwrap());
+        }
+
+        Ok(accounts)
     }
 
     async fn get_wallet_by_id(&self, id: &str) -> VaultResult<WalletModel> {
@@ -89,7 +109,7 @@ impl SqliteVault {
         Self(connection)
     }
 
-    pub fn parse_account(entry: SqliteRow) -> VaultResult<AccountModel> {
+    pub fn parse_account(entry: &SqliteRow) -> VaultResult<AccountModel> {
         let id: String = entry.get("id");
         let path: String = entry.get("path");
         let address: String = entry.get("address");
