@@ -54,6 +54,18 @@ impl From<Mnemonic> for WalletInputBuilder {
 }
 
 impl WalletInputBuilder {
+    pub fn new() -> Self {
+        let mut entropy = [0u8; 32];
+        let mut rng = OsRng;
+        rng.fill_bytes(&mut entropy);
+        let mnemonic = Mnemonic::from_entropy(&entropy).expect("Mnemonic generation fail");
+        Self {
+            mnemonic,
+            name: "".to_string(),
+            password: "".to_string(),
+        }
+    }
+
     pub fn name(&mut self, name: &str) {
         self.name = name.to_string()
     }
