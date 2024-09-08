@@ -3,7 +3,6 @@ pub struct AccountModel {
     pub id: String,
     pub wallet_id: String,
     pub address: String,
-    pub index: usize,
     pub path: String,
     pub created_at: Option<String>,
 }
@@ -15,7 +14,6 @@ impl From<StoreAccountInput> for AccountModel {
             wallet_id: value.wallet_id,
             address: value.address,
             path: value.encrypted_path,
-            index: value.index,
             created_at: None,
         }
     }
@@ -27,4 +25,9 @@ pub struct StoreAccountInput {
     address: String,
     encrypted_path: String,
     index: usize,
+}
+
+#[derive(Default, Debug)]
+pub struct AccountInputBuilder {
+    path: String,
 }
