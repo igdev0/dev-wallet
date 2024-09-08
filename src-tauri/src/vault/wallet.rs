@@ -1,13 +1,11 @@
-use core::hash;
-
 use bip39::Mnemonic;
 use bitcoin::hex::{Case, DisplayHex};
-use rand::{Rng, RngCore};
+use rand::{RngCore};
 use rand_core::{self, OsRng};
 
 use argon2::{
-    password_hash::{rand_core::OsRng, PasswordHash, PasswordHasher, PasswordVerifier, SaltString},
-    Argon2, Params,
+    password_hash::{PasswordHasher, SaltString},
+    Argon2,
 }
 
 use crate::utils::encrypt;
