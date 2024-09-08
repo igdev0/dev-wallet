@@ -1,4 +1,3 @@
-use aes_gcm::Aes256Gcm;
 use async_trait::async_trait;
 use thiserror::Error;
 
@@ -8,7 +7,12 @@ use super::{
 };
 
 #[derive(Error, Debug)]
-pub enum VaultError {}
+pub enum VaultError {
+    #[error("Entity not found")]
+    NotFound,
+    #[error("Parsing error")]
+    Parser
+}
 
 pub type VaultResult<T> = Result<T, VaultError>;
 

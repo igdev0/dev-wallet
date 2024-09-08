@@ -1,10 +1,10 @@
 use async_trait::async_trait;
-use sqlx::{migrate::MigrateDatabase, sqlite::SqlitePoolOptions, Pool, Sqlite};
+use sqlx::{migrate::MigrateDatabase, sqlite::SqlitePoolOptions, Pool, Row, Sqlite};
 use std::ops::Deref;
 
 use super::{
-    account::{AccountModel, StoreAccountInput},
-    interface::{VaultInterface, VaultResult},
+    account::{AccountModel, Blockchain, Network, StoreAccountInput},
+    interface::{VaultError, VaultInterface, VaultResult},
     wallet::{StoreWalletInput, WalletModel},
 };
 
@@ -22,7 +22,43 @@ impl Deref for SqliteVault {
 #[async_trait]
 impl VaultInterface for SqliteVault {
     async fn get_account_by_id(&self, id: &str) -> VaultResult<AccountModel> {
-        Ok(AccountModel::default())
+        let res = sqlx::query("SELECT * FROM accounts WHERE id = ?;")
+            .bind(id)
+            .fetch_one(&self.0)
+            .await;
+        if let Err(e) = res {
+            return Err(VaultError::NotFound);
+        }
+
+        let entry = res.expect("Failed to unwrap account by id query");
+
+        let id: String = entry.get("id");
+        let path: String = entry.get("path");
+        let address: String = entry.get("address");
+        let blockchain: String = entry.get("blockchain");
+        let network: String = entry.get("network");
+        let wallet_id: String = entry.get("wallet_id");
+        let created_at: String = entry.get("created_at");
+
+        let blockchain = Blockchain::from_string(&blockchain);
+        if let Err(_) = blockchain {
+            return Err(VaultError::Parser);
+        }
+
+        let network = Network::from_string(&network);
+        if let Err(_) = network {
+            return Err(VaultError::Parser);
+        }
+
+        Ok(AccountModel {
+            id,
+            address,
+            blockchain: blockchain.unwrap(),
+            network: network.unwrap(),
+            wallet_id,
+            path,
+            created_at: Some(created_at),
+        })
     }
 
     async fn get_all_accounts(&self, id: &str) -> VaultResult<Vec<AccountModel>> {

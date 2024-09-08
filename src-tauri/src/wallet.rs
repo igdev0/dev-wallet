@@ -4,18 +4,16 @@ use std::vec;
 use crate::account::{Account, AccountBuilder};
 
 use crate::config::Config;
-use crate::storage::DbFacadePool;
 use crate::utils::{decrypt, encrypt};
 use crate::WalletError;
 
 use argon2::{
-    password_hash::{rand_core::OsRng, PasswordHash, PasswordHasher, PasswordVerifier, SaltString},
+    password_hash::{PasswordHash, PasswordVerifier},
     Argon2,
 };
 use bip39::Mnemonic;
 use bitcoin::hex::{Case, DisplayHex};
 use serde_json::{json, Value};
-use sqlx::Row;
 
 pub struct Wallet {
     pub name: String,
@@ -77,7 +75,7 @@ impl Wallet {
     ) -> Result<Wallet, WalletError> {
         let query = {
             if let Some(_) = &self.id {
-                "SELECT * FROM wallets WHERE wallet_id = ?;"
+                "SELECT * FROM wallets WHERE id = ?;"
             } else {
                 "SELECT * FROM wallets WHERE name = ?;"
             }
