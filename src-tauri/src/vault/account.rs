@@ -1,6 +1,7 @@
 #[derive(Default, Debug)]
 pub struct AccountModel {
     pub id: String,
+    pub wallet_id: String,
     pub address: String,
     pub index: usize,
     pub path: String,
@@ -11,6 +12,7 @@ impl From<StoreAccountInput> for AccountModel {
     fn from(value: StoreAccountInput) -> Self {
         Self {
             id: uuid::Uuid::new_v4().to_string(),
+            wallet_id: value.wallet_id,
             address: value.address,
             path: value.encrypted_path,
             index: value.index,
@@ -26,5 +28,3 @@ pub struct StoreAccountInput {
     encrypted_path: String,
     index: usize,
 }
-
-impl StoreAccountInput {}
