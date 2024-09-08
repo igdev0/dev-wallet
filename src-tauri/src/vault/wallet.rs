@@ -1,12 +1,12 @@
 use bip39::Mnemonic;
 use bitcoin::hex::{Case, DisplayHex};
-use rand::{RngCore};
+use rand::RngCore;
 use rand_core::{self, OsRng};
 
 use argon2::{
     password_hash::{PasswordHasher, SaltString},
     Argon2,
-}
+};
 
 use crate::utils::encrypt;
 
@@ -81,9 +81,7 @@ impl WalletInputBuilder {
         let mut key: [u8; 32] = [0u8; 32];
         key.copy_from_slice(&aes_key.as_bytes()[..32]);
 
-        let seed = self
-            .mnemonic
-            .to_seed(&self.password);
+        let seed = self.mnemonic.to_seed(&self.password);
 
         StoreWalletInput {
             encrypted_pass: password.to_string(),
@@ -94,7 +92,7 @@ impl WalletInputBuilder {
 }
 
 impl StoreWalletInput {
-    fn new<'a>(name: &'a str, password: &'a str) -> WalletInputBuilder {
+    pub fn new<'a>(name: &'a str, password: &'a str) -> WalletInputBuilder {
         let mut entropy = [0u8; 32];
         let mut rng = OsRng;
         rng.fill_bytes(&mut entropy);
@@ -105,5 +103,28 @@ impl StoreWalletInput {
             password: password.to_string(),
             mnemonic,
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn can_create_wallet_input_from_name_and_password() {
+        let res = StoreWalletInput::new("name", "password");
+        assert_eq!(res.name, "name");
+        assert_eq!(res.password, "password"); // not encrypted
+        assert!(res.mnemonic.to_string().len() > 0);
+
+        let wallet_input = res.build();
+
+        assert_eq!(wallet_input.name, "name");
+        assert_ne!(wallet_input.encrypted_pass, "password"); // is encrypted now
+
+        let model = WalletModel::from(wallet_input);
+
+        assert!(model.id.len() > 0);
+
+        assert!(model.seed.len() > 0);
     }
 }
