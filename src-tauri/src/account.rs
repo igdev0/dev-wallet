@@ -56,17 +56,6 @@ pub struct Account {
 impl Account {
     pub async fn save(&self, db: &DbFacadePool) {
         let id = uuid::Uuid::new_v4().to_string();
-        sqlx::query(
-            "INSERT into accounts (id, wallet_id, address, 'index', path) values (?,?,?,?,?)",
-        )
-        .bind(id)
-        .bind(&self.wallet_id)
-        .bind(&self.address)
-        .bind(&self.index)
-        .bind(&self.path)
-        .execute(db)
-        .await
-        .unwrap();
     }
 
     pub fn from_entry(entry: &SqliteRow) -> Account {

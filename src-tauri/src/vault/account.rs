@@ -10,8 +10,8 @@ pub struct AccountModel {
     pub wallet_id: String,
     pub address: String,
     pub path: String,
-    pub network: Network,
-    pub blockchain: Blockchain,
+    pub network: String,
+    pub blockchain: String,
     pub created_at: Option<String>,
 }
 
@@ -75,7 +75,8 @@ impl From<StoreAccountInput> for AccountModel {
             address: value.address,
             path: value.encrypted_path,
             created_at: None,
-            ..Default::default()
+            blockchain: value.blockchain.to_string(),
+            network: value.network.to_string(),
         }
     }
 }

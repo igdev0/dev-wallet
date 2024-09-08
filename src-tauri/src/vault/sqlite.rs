@@ -102,6 +102,30 @@ impl VaultInterface for SqliteVault {
     }
 
     async fn insert_account(&self, input: StoreAccountInput) -> VaultResult<()> {
+        let AccountModel {
+            id,
+            address,
+            blockchain,
+            wallet_id,
+            network,
+            created_at: _,
+            path,
+        } = AccountModel::from(input);
+
+        let res = sqlx::query("INSERT into accounts (id, wallet_id, address, path, blockchain, network) values (?,?,?,?,?,?)")
+            .bind(id)
+            .bind(wallet_id)
+            .bind(address)
+            .bind(path)
+            .bind(blockchain)
+            .bind(network)
+            .execute(&self.0)
+            .await;
+
+        if let Err(_) = res {
+            return Err(VaultError::Inserting);
+        }
+
         Ok(())
     }
 }
@@ -161,8 +185,8 @@ impl SqliteVault {
         Ok(AccountModel {
             id,
             address,
-            blockchain: blockchain.unwrap(),
-            network: network.unwrap(),
+            blockchain: blockchain.unwrap().to_string(),
+            network: network.unwrap().to_string(),
             wallet_id,
             path,
             created_at: Some(created_at),
