@@ -68,16 +68,25 @@ impl VaultInterface for SqliteVault {
             .bind(id)
             .fetch_one(&self.0)
             .await;
-        if let Err(e) = res {
+        if let Err(_) = res {
             return Err(VaultError::NotFound);
         }
 
         let result = res.unwrap();
-        SqliteVault::parse_wallet(&result) 
+        SqliteVault::parse_wallet(&result)
     }
 
     async fn get_wallet_by_name(&self, name: &str) -> VaultResult<WalletModel> {
-        Ok(WalletModel::default())
+        let res = sqlx::query("SELECT * FROM accounts WHERE id = ?;")
+            .bind(name)
+            .fetch_one(&self.0)
+            .await;
+        if let Err(_) = res {
+            return Err(VaultError::NotFound);
+        }
+
+        let result = res.unwrap();
+        SqliteVault::parse_wallet(&result)
     }
 
     async fn remove_account_by_id(&self, id: &str) -> VaultResult<()> {
