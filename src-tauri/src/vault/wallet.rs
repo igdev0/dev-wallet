@@ -4,18 +4,53 @@ use rand::RngCore;
 use rand_core::{self, OsRng};
 
 use argon2::{
-    password_hash::{PasswordHasher, SaltString},
-    Argon2,
+    password_hash::{PasswordHash, PasswordHasher, SaltString},
+    Argon2, PasswordVerifier,
 };
+use thiserror::Error;
 
-use crate::utils::encrypt;
+use crate::utils::{encrypt, AESKey};
 
 #[derive(Default, Debug)]
 pub struct WalletModel {
     pub id: String,
     pub name: String,
-    pub password: String,
-    pub seed: String,
+    password: String,
+    seed: String,
+}
+
+#[derive(Error, Debug)]
+pub enum AuthError {
+    #[error("Authentication failed")]
+    Failed,
+    #[error("Parser failed")]
+    Parser,
+}
+
+pub type AuthResult = Result<AESKey, AuthError>;
+
+impl WalletModel {
+    pub fn authenticate(&self, password: &str) -> AuthResult {
+        let argon2 = Argon2::default();
+        let parsed_password = PasswordHash::new(&self.password);
+
+        if let Err(_) = parsed_password {
+            return Err(AuthError::Parser);
+        }
+
+        let parsed_password = parsed_password.unwrap();
+
+        let auth_result = argon2.verify_password(password.as_bytes(), &parsed_password);
+        if let Err(_) = auth_result {
+            return Err(AuthError::Failed);
+        }
+
+        let mut key = [0u8; 32];
+        let hash = parsed_password.hash.unwrap();
+
+        key.copy_from_slice(&hash.as_bytes()[..32]);
+        Ok(key)
+    }
 }
 
 impl From<StoreWalletInput> for WalletModel {
