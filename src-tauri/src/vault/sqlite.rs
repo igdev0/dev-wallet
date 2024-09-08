@@ -30,7 +30,7 @@ impl VaultInterface for SqliteVault {
             .bind(id)
             .fetch_one(&self.0)
             .await;
-        if let Err(e) = res {
+        if let Err(_) = res {
             return Err(VaultError::NotFound);
         }
 
