@@ -1,12 +1,10 @@
 use async_trait::async_trait;
-use rand_core::le;
 use sqlx::{
     migrate::MigrateDatabase,
     sqlite::{SqlitePoolOptions, SqliteRow},
     Pool, Row, Sqlite,
 };
 use std::ops::Deref;
-use uuid::uuid;
 
 use super::{
     account::{AccountModel, Blockchain, Network, StoreAccountInput},
