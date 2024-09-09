@@ -130,8 +130,8 @@ impl VaultInterface for SqliteVault {
         let id = uuid::Uuid::new_v4().to_string();
         let result = sqlx::query("INSERT into wallets (id, name, seed, password) values (?,?,?,?)")
             .bind(id)
-            .bind(input.name)
-            .bind(input.encrypted_pass)
+            .bind(input.name.to_string())
+            .bind(input.encrypted_pass.to_string())
             .execute(&self.0)
             .await;
 

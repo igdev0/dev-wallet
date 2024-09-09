@@ -4,8 +4,8 @@
 use dev_wallet::vault::{
     interface::VaultInterface, sqlite::SqliteVault, wallet::WalletInputBuilder,
 };
-use serde_json::{json, Value};
-use std::{str::FromStr, sync::Arc};
+// use serde_json::{json, Value};
+use std::sync::Arc;
 use tauri::{Manager, State};
 use tokio::sync::Mutex;
 
@@ -25,14 +25,14 @@ async fn generate_mnemonic(state: State<'_, AppState>) -> Result<String, String>
     Ok(wallet.mnemonic_as_string())
 }
 
-#[tauri::command]
-async fn authenticate(
-    name: String,
-    password: String,
-    state: State<'_, AppState>,
-) -> Result<Value, String> {
-    Ok(json!({}))
-}
+// #[tauri::command]
+// async fn authenticate(
+//     name: String,
+//     password: String,
+//     state: State<'_, AppState>,
+// ) -> Result<Value, String> {
+//     Ok(json!({}))
+// }
 
 #[tauri::command]
 async fn create_wallet(
@@ -54,15 +54,15 @@ async fn create_wallet(
     Ok("success".to_string())
 }
 
-#[tauri::command]
-async fn create_account(
-    path: String,
-    wallet_id: String,
-    password: String,
-    state: State<'_, AppState>,
-) -> Result<Value, String> {
-    Ok(json!({}))
-}
+// #[tauri::command]
+// async fn create_account(
+//     path: String,
+//     wallet_id: String,
+//     password: String,
+//     state: State<'_, AppState>,
+// ) -> Result<Value, String> {
+//     Ok(json!({}))
+// }
 
 #[async_std::main]
 async fn main() {
@@ -82,8 +82,8 @@ async fn main() {
         .invoke_handler(tauri::generate_handler![
             generate_mnemonic,
             create_wallet,
-            authenticate,
-            create_account
+            // authenticate,
+            // create_account
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
