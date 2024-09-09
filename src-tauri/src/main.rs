@@ -1,7 +1,9 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-use dev_wallet::vault::sqlite::SqliteVault;
+use dev_wallet::vault::{
+    interface::VaultInterface, sqlite::SqliteVault, wallet::WalletInputBuilder,
+};
 use serde_json::{json, Value};
 use std::{str::FromStr, sync::Arc};
 use tauri::{Manager, State};
@@ -10,18 +12,17 @@ use tokio::sync::Mutex;
 // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
 
 struct AppState {
-    mnemonics: Arc<Mutex<String>>,
+    wallet: Arc<Mutex<WalletInputBuilder>>,
     vault: Arc<Mutex<SqliteVault>>,
 }
 
 #[tauri::command]
 async fn generate_mnemonic(state: State<'_, AppState>) -> Result<String, String> {
-    let mnemonics: String = dev_wallet::utils::generate_mnemonic().unwrap().to_string();
+    let mut wallet = state.wallet.lock().await;
 
-    let mut m = state.mnemonics.lock().await;
-    *m = mnemonics.clone();
-
-    Ok(mnemonics)
+    wallet.regenerate_mnemonic();
+    // wallet
+    Ok(wallet.mnemonic_as_string())
 }
 
 #[tauri::command]
@@ -39,8 +40,18 @@ async fn create_wallet(
     password: String,
     state: State<'_, AppState>,
 ) -> Result<String, String> {
-    let mnemonics = state.mnemonics.lock().await;
-    Ok("".to_string())
+    let mut wallet = state.wallet.lock().await;
+    let vault = state.vault.lock().await;
+    wallet.name(&name);
+    wallet.password(&password);
+    let wallet = wallet.build();
+    let result = vault.insert_wallet(wallet).await;
+
+    if let Err(err) = result {
+        return Err(err.to_string());
+    }
+
+    Ok("success".to_string())
 }
 
 #[tauri::command]
@@ -59,7 +70,7 @@ async fn main() {
     vault.migrate().await;
 
     let app_state = AppState {
-        mnemonics: Arc::new(Mutex::new(String::from(""))),
+        wallet: Arc::new(Mutex::new(WalletInputBuilder::new())),
         vault: Arc::new(Mutex::new(vault)),
     };
 
