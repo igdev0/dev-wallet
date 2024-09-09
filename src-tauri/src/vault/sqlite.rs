@@ -92,6 +92,15 @@ impl VaultInterface for SqliteVault {
     }
 
     async fn remove_account_by_id(&self, id: &str) -> VaultResult<()> {
+        let result = sqlx::query("DELETE FROM accounts WHERE id = ?;")
+            .bind(id)
+            .execute(&self.0)
+            .await;
+
+        if let Err(_) = result {
+            return Err(VaultError::Removing);
+        }
+
         Ok(())
     }
 
