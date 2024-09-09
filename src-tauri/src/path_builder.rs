@@ -88,3 +88,15 @@ impl PathBuilder {
         DerivationPath::from(vec![purpose, coin_type, account_index, change_index, index])
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn can_build_bip32_path() {
+        let path = PathBuilder::new();
+        let path = path.build().to_string();
+
+        assert_eq!(path, "49'/0'/0'/0/0");
+    }
+}

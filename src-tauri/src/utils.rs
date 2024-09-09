@@ -1,4 +1,5 @@
 use bip39::Mnemonic;
+use bitcoin::hex::{Case, DisplayHex};
 use rand::RngCore;
 use rand_core::{self, OsRng};
 
@@ -63,4 +64,23 @@ pub fn decrypt(key: &AESKey, data: &[u8]) -> Vec<u8> {
         .expect("decryption failure!");
 
     decrypted
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn can_encrypt_and_decrypt_data() {
+        let key = [1u8; 32];
+
+        let text = b"Hello world";
+
+        let encrypted_data = encrypt(&key, text);
+
+        let decrypted = decrypt(&key, &encrypted_data);
+        println!("{}", &decrypted.to_hex_string(Case::Lower));
+        let decrypted = decrypted.to_hex_string(Case::Lower);
+        let text = text.to_hex_string(Case::Lower);
+        assert_eq!(text, decrypted);
+    }
 }
