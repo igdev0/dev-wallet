@@ -1,9 +1,7 @@
-pub mod account;
 pub mod config;
 pub mod path_builder;
-pub mod vault;
 pub mod utils;
-pub mod wallet;
+pub mod vault;
 use thiserror::Error;
 
 #[macro_use]
