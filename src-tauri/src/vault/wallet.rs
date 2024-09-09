@@ -117,6 +117,10 @@ impl WalletInputBuilder {
         self.mnemonic = Mnemonic::from_entropy(&entropy).expect("Mnemonic generation fail");
     }
 
+    pub fn  (&self) -> String {
+        self.mnemonic.to_string()
+    }
+
     pub fn build(&self) -> StoreWalletInput {
         let salt = SaltString::generate(&mut OsRng);
         let hasher = Argon2::default();
