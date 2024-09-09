@@ -2,10 +2,7 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 use bitcoin::bip32::DerivationPath;
-use dev_wallet::{
-    storage::{self, DbFacadePool},
-    wallet::WalletBuilder,
-};
+use dev_wallet::vault::sqlite::SqliteVault;
 use serde_json::{json, Value};
 use std::{str::FromStr, sync::Arc};
 use tauri::{Manager, State};
@@ -15,7 +12,7 @@ use tokio::sync::Mutex;
 
 struct AppState {
     mnemonics: Arc<Mutex<String>>,
-    db_pool: Arc<Mutex<DbFacadePool>>,
+    vault: Arc<Mutex<SqliteVault>>,
 }
 
 #[tauri::command]
@@ -113,12 +110,12 @@ async fn create_account(
 
 #[async_std::main]
 async fn main() {
-    let db_pool = storage::DbFacade::new(None).await;
-    db_pool.migrate().await;
+    let vault = SqliteVault::new(Some("sqlite://database.db")).await;
+    vault.migrate().await;
 
     let app_state = AppState {
         mnemonics: Arc::new(Mutex::new(String::from(""))),
-        db_pool: Arc::new(Mutex::new(db_pool)),
+        vault: Arc::new(Mutex::new(vault)),
     };
 
     tauri::Builder::default()

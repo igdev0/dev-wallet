@@ -196,10 +196,13 @@ impl SqliteVault {
         let id: String = entry.get("id");
         let name: String = entry.get("name");
 
+        let seed: String = entry.get("seed");
+
         Ok(WalletModel {
             id,
             name,
-            ..Default::default()
+            seed,
+            password: "".to_string(),
         })
     }
 

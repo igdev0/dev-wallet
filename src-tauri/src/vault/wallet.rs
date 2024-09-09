@@ -11,11 +11,11 @@ use thiserror::Error;
 
 use crate::utils::{encrypt, AESKey};
 
-#[derive(Default, Debug)]
+#[derive(Debug)]
 pub struct WalletModel {
     pub id: String,
     pub name: String,
-    password: String,
+    pub password: String,
     pub seed: String,
 }
 
