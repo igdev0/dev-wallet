@@ -1,10 +1,12 @@
 use async_trait::async_trait;
+use rand_core::le;
 use sqlx::{
     migrate::MigrateDatabase,
     sqlite::{SqlitePoolOptions, SqliteRow},
     Pool, Row, Sqlite,
 };
 use std::ops::Deref;
+use uuid::uuid;
 
 use super::{
     account::{AccountModel, Blockchain, Network, StoreAccountInput},
@@ -98,6 +100,18 @@ impl VaultInterface for SqliteVault {
     }
 
     async fn insert_wallet(&self, input: StoreWalletInput) -> VaultResult<()> {
+        let id = uuid::Uuid::new_v4().to_string();
+        let result = sqlx::query("INSERT into wallets (id, name, seed, password) values (?,?,?,?)")
+            .bind(id)
+            .bind(input.name)
+            .bind(input.encrypted_pass)
+            .execute(&self.0)
+            .await;
+
+        if let Err(_) = result {
+            return Err(VaultError::Inserting);
+        }
+
         Ok(())
     }
 
