@@ -9,21 +9,14 @@ use argon2::{
 };
 use thiserror::Error;
 
-use crate::utils::{decrypt, encrypt, AESKey};
+use crate::utils::{encrypt, AESKey};
 
 #[derive(Default, Debug)]
 pub struct WalletModel {
     pub id: String,
     pub name: String,
     password: String,
-    pub seed: String,
-}
-
-// Wallet struct will store the decrypted seed, name and id
-pub struct Wallet {
-    pub id: String,
-    pub name: String,
-    pub seed: Vec<u8>,
+    seed: String,
 }
 
 #[derive(Error, Debug)]
@@ -34,7 +27,7 @@ pub enum AuthError {
     Parser,
 }
 
-pub type AuthResult = Result<Wallet, AuthError>;
+pub type AuthResult = Result<AESKey, AuthError>;
 
 impl WalletModel {
     pub fn authenticate(&self, password: &str) -> AuthResult {
@@ -56,13 +49,7 @@ impl WalletModel {
         let hash = parsed_password.hash.unwrap();
 
         key.copy_from_slice(&hash.as_bytes()[..32]);
-
-        let seed = hex::decode(&self.seed).unwrap();
-        Ok(Wallet {
-            id: self.id.clone(),
-            name: self.name.clone(),
-            seed: decrypt(&key, &seed),
-        })
+        Ok(key)
     }
 }
 
