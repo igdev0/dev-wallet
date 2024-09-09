@@ -16,7 +16,7 @@ pub struct WalletModel {
     pub id: String,
     pub name: String,
     password: String,
-    seed: String,
+    pub seed: String,
 }
 
 #[derive(Error, Debug)]
