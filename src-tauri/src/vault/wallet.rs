@@ -54,8 +54,8 @@ impl WalletModel {
 }
 
 impl From<StoreWalletInput> for WalletModel {
-    fn from(value: StoreWalletInput) -> Self {
-        Self {
+    fn from(value: StoreWalletInput) -> WalletModel {
+        WalletModel {
             id: uuid::Uuid::new_v4().to_string(),
             name: value.name,
             password: value.encrypted_pass,
@@ -66,9 +66,9 @@ impl From<StoreWalletInput> for WalletModel {
 
 #[derive(Default, Debug)]
 pub struct StoreWalletInput {
-    name: String,
-    encrypted_pass: String,
-    encrypted_seed: String,
+    pub name: String,
+    pub encrypted_pass: String,
+    pub encrypted_seed: String,
 }
 
 #[derive(Debug)]
