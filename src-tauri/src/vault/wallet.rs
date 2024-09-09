@@ -9,7 +9,7 @@ use argon2::{
 };
 use thiserror::Error;
 
-use crate::utils::{decrypt, encrypt};
+use crate::utils::{decrypt, encrypt, AESKey};
 
 #[derive(Default, Debug)]
 pub struct WalletModel {
