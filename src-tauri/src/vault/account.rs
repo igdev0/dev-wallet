@@ -1,11 +1,10 @@
-use core::{fmt, slice::SlicePattern};
+use core::fmt;
 
 use crate::utils::{decrypt, encrypt, AESKey};
 use bitcoin::{
     bip32::{DerivationPath, Xpriv},
     hex::DisplayHex,
     secp256k1, Address, CompressedPublicKey, Network as BitcoinNetwork, NetworkKind, PrivateKey,
-    PubkeyHash,
 };
 use thiserror::Error;
 
