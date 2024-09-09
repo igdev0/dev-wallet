@@ -77,7 +77,7 @@ impl VaultInterface for SqliteVault {
     }
 
     async fn get_wallet_by_name(&self, name: &str) -> VaultResult<WalletModel> {
-        let res = sqlx::query("SELECT * FROM accounts WHERE id = ?;")
+        let res = sqlx::query("SELECT * FROM accounts WHERE src/vault/sqlite.rs  = ?;")
             .bind(name)
             .fetch_one(&self.0)
             .await;
@@ -130,12 +130,14 @@ impl VaultInterface for SqliteVault {
         let id = uuid::Uuid::new_v4().to_string();
         let result = sqlx::query("INSERT into wallets (id, name, seed, password) values (?,?,?,?)")
             .bind(id)
-            .bind(input.name.to_string())
-            .bind(input.encrypted_pass.to_string())
+            .bind(input.name)
+            .bind(input.encrypted_seed)
+            .bind(input.encrypted_pass)
             .execute(&self.0)
             .await;
 
-        if let Err(_) = result {
+        if let Err(err) = result {
+            dbg!(err);
             return Err(VaultError::Inserting);
         }
 
