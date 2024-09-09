@@ -16,6 +16,8 @@ pub enum VaultError {
     Parser,
     #[error("Failed inserting")]
     Inserting,
+    #[error("Failed removing")]
+    Removing,
 }
 
 pub type VaultResult<T> = Result<T, VaultError>;
