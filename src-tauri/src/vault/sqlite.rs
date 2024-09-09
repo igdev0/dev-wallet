@@ -77,7 +77,7 @@ impl VaultInterface for SqliteVault {
     }
 
     async fn get_wallet_by_name(&self, name: &str) -> VaultResult<WalletModel> {
-        let res = sqlx::query("SELECT * FROM accounts WHERE src/vault/sqlite.rs  = ?;")
+        let res = sqlx::query("SELECT * FROM wallets WHERE name = ?;")
             .bind(name)
             .fetch_one(&self.0)
             .await;
