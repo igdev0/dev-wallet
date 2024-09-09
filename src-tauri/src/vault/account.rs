@@ -195,7 +195,6 @@ impl AccountInputBuilder {
             encrypted_path,
             network: Network::Mainnet,
             wallet_id: self.wallet_id.clone(),
-            ..Default::default()
         })
     }
 }
