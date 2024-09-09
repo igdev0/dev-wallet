@@ -96,6 +96,26 @@ impl VaultInterface for SqliteVault {
     }
 
     async fn remove_wallet_by_id(&self, id: &str) -> VaultResult<()> {
+        let result = sqlx::query(
+            "
+            BEGIN TRANSACTION;
+    -- Delete associated accounts first
+    DELETE FROM accounts
+    WHERE wallet_id = ?;
+
+    -- Delete the wallet after associated accounts are deleted
+    DELETE FROM wallets
+    WHERE id = ?;
+
+    COMMIT;
+        ",
+        )
+        .bind(id)
+        .execute(&self.0)
+        .await;
+        if let Err(_) = result {
+            return Err(VaultError::Removing);
+        }
         Ok(())
     }
 
