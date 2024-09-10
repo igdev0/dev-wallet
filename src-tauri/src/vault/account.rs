@@ -128,7 +128,7 @@ pub struct AccountInputBuilder {
     pub path: DerivationPath,
     pub blockchain: Blockchain,
     pub network: Network,
-    pub encrypted_seed: &'static str,
+    pub encrypted_seed: String,
     pub wallet_id: String,
 }
 
@@ -154,8 +154,8 @@ impl AccountInputBuilder {
         self.network = network;
     }
 
-    pub fn encrypted_seed(&mut self, encrypted_seed: &'static str) {
-        self.encrypted_seed = encrypted_seed;
+    pub fn encrypted_seed(&mut self, encrypted_seed: &str) {
+        self.encrypted_seed = encrypted_seed.to_string();
     }
 
     pub fn build(&self, key: AESKey) -> AccountInputBuilderResult {
