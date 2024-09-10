@@ -46,7 +46,6 @@ pub fn encrypt(key: &AESKey, data: &[u8]) -> AESResult {
     // Create AES-GCM cipher
     let cipher = Aes256Gcm::new(GenericArray::from_slice(key));
 
-    println!("Decrypted with AESKey: {:#?}", &key);
     // Generate a random nonce
     let nonce = Aes256Gcm::generate_nonce(&mut OsRng); // 96-bits; unique per message
     let ciphertext = cipher.encrypt(&nonce, data);
@@ -73,8 +72,6 @@ pub fn encrypt(key: &AESKey, data: &[u8]) -> AESResult {
 pub fn decrypt(key: &AESKey, data: &[u8]) -> AESResult {
     // Create AES-GCM cipher
     let cipher = Aes256Gcm::new(GenericArray::from_slice(key));
-
-    println!("Decrypted with AESKey: {:#?}", key);
     // Convert nonce slice to Nonce type
     let (nonce, ciphertext) = data.split_at(12); // 96-bits; unique per message
     let decrypted = cipher.decrypt(Nonce::from_slice(nonce), ciphertext);
