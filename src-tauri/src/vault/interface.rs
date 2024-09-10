@@ -32,6 +32,8 @@ pub trait VaultInterface {
 
     async fn get_all_accounts(&self, id: &str) -> VaultResult<Vec<AccountModel>>;
 
+    async fn get_all_wallets(&self) -> VaultResult<Vec<WalletModel>>;
+
     async fn remove_account_by_id(&self, id: &str) -> VaultResult<()>;
 
     async fn remove_wallet_by_id(&self, id: &str) -> VaultResult<()>;

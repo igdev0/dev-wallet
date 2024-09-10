@@ -9,7 +9,7 @@ use std::ops::Deref;
 use super::{
     account::{AccountModel, Blockchain, Network, StoreAccountInput},
     interface::{VaultError, VaultInterface, VaultResult},
-    wallet::{StoreWalletInput, WalletModel},
+    wallet::{self, StoreWalletInput, WalletModel},
 };
 
 pub type DatabasePool = Pool<Sqlite>;
@@ -59,6 +59,28 @@ impl VaultInterface for SqliteVault {
         }
 
         Ok(accounts)
+    }
+
+    async fn get_all_wallets(&self) -> VaultResult<Vec<WalletModel>> {
+        let res = sqlx::query("SELECT * from wallets;")
+            .fetch_all(&self.0)
+            .await;
+
+        if let Err(err) = res {
+            return Err(VaultError::NotFound(err.to_string()));
+        }
+
+        let results = res.unwrap();
+
+        let mut wallets = vec![];
+        for w in results.iter() {
+            let wallet = SqliteVault::parse_wallet(w);
+            if let Err(err) = wallet {
+                return Err(err);
+            }
+            wallets.push(wallet.unwrap());
+        }
+        Ok(wallets)
     }
 
     async fn get_wallet_by_id(&self, id: &str) -> VaultResult<WalletModel> {
