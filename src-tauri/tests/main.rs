@@ -49,3 +49,25 @@ async fn can_create_account() {
 
     assert_eq!(account_retrieved.id, account.id);
 }
+
+#[tokio::test]
+
+async fn can_find_wallet() {
+    let vault = SqliteVault::new(Some("sqlite::memory:")).await;
+    vault.migrate().await;
+
+    let name = "main";
+    let password = "password123";
+    let mut wallet = WalletInputBuilder::new();
+
+    wallet.name(&name);
+    wallet.password(&password);
+    let wallet = wallet.build().unwrap();
+    let wallet = vault.insert_wallet(wallet).await.unwrap();
+
+    let wallet = vault.get_wallet_by_id(&wallet.id).await.unwrap();
+    assert_eq!(wallet.name, name);
+
+    let wallet = vault.get_wallet_by_name(&wallet.name).await.unwrap();
+    assert_eq!(wallet.name, name);
+}
