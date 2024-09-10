@@ -204,12 +204,13 @@ impl SqliteVault {
         let name: String = entry.get("name");
 
         let seed: String = entry.get("seed");
+        let password: String = entry.get("password");
 
         Ok(WalletModel {
             id,
             name,
             seed,
-            password: "".to_string(),
+            password,
         })
     }
 
