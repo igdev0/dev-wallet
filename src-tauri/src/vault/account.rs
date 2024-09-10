@@ -1,6 +1,9 @@
 use core::fmt;
 
-use crate::utils::{decrypt, encrypt, AESKey};
+use crate::{
+    path_builder::PathBuilder,
+    utils::{decrypt, encrypt, AESKey},
+};
 use bitcoin::{
     bip32::{DerivationPath, Xpriv},
     hex::DisplayHex,
@@ -8,6 +11,8 @@ use bitcoin::{
 };
 use hex::decode;
 use thiserror::Error;
+
+use super::wallet::WalletModel;
 
 const BITCOIN: &str = "Bitcoin";
 const TESTNET: &str = "Testnet";
@@ -137,6 +142,17 @@ impl From<DerivationPath> for AccountInputBuilder {
     fn from(value: DerivationPath) -> Self {
         Self {
             path: value,
+            ..Default::default()
+        }
+    }
+}
+
+impl From<WalletModel> for AccountInputBuilder {
+    fn from(value: WalletModel) -> Self {
+        Self {
+            path: PathBuilder::new().build(),
+            wallet_id: value.id,
+            encrypted_seed: value.seed,
             ..Default::default()
         }
     }
