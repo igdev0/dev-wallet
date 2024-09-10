@@ -159,8 +159,9 @@ impl From<WalletModel> for AccountInputBuilder {
 }
 
 impl AccountInputBuilder {
-    pub fn path(&mut self, path: DerivationPath) {
+    pub fn path(&mut self, path: DerivationPath) -> &mut Self {
         self.path = path;
+        self
     }
 
     pub fn wallet_id(&mut self, id: &str) {
