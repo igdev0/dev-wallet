@@ -38,5 +38,5 @@ pub trait VaultInterface {
 
     async fn insert_wallet(&self, input: StoreWalletInput) -> VaultResult<WalletModel>;
 
-    async fn insert_account(&self, input: StoreAccountInput) -> VaultResult<()>;
+    async fn insert_account(&self, input: StoreAccountInput) -> VaultResult<AccountModel>;
 }

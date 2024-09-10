@@ -64,7 +64,7 @@ impl Blockchain {
     }
 }
 
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Clone, Copy)]
 pub enum Network {
     #[default]
     Mainnet,
@@ -112,7 +112,7 @@ impl From<StoreAccountInput> for AccountModel {
     }
 }
 
-#[derive(Default, Debug)]
+#[derive(Default, Debug, Clone)]
 pub struct StoreAccountInput {
     pub wallet_id: String,
     pub address: String,

@@ -149,7 +149,7 @@ impl VaultInterface for SqliteVault {
         })
     }
 
-    async fn insert_account(&self, input: StoreAccountInput) -> VaultResult<()> {
+    async fn insert_account(&self, input: StoreAccountInput) -> VaultResult<AccountModel> {
         let AccountModel {
             id,
             address,
@@ -158,7 +158,7 @@ impl VaultInterface for SqliteVault {
             network,
             created_at: _,
             path,
-        } = AccountModel::from(input);
+        } = AccountModel::from(input.clone());
 
         let res = sqlx::query("INSERT into accounts (id, wallet_id, address, path, blockchain, network) values (?,?,?,?,?,?)")
             .bind(id)
@@ -174,7 +174,7 @@ impl VaultInterface for SqliteVault {
             return Err(VaultError::Inserting);
         }
 
-        Ok(())
+        Ok(AccountModel::from(input))
     }
 }
 
