@@ -126,13 +126,13 @@ impl VaultInterface for SqliteVault {
         Ok(())
     }
 
-    async fn insert_wallet(&self, input: StoreWalletInput) -> VaultResult<()> {
+    async fn insert_wallet(&self, input: StoreWalletInput) -> VaultResult<WalletModel> {
         let id = uuid::Uuid::new_v4().to_string();
         let result = sqlx::query("INSERT into wallets (id, name, seed, password) values (?,?,?,?)")
-            .bind(id)
-            .bind(input.name)
-            .bind(input.encrypted_seed)
-            .bind(input.encrypted_pass)
+            .bind(&id)
+            .bind(&input.name)
+            .bind(&input.encrypted_seed)
+            .bind(&input.encrypted_pass)
             .execute(&self.0)
             .await;
 
@@ -141,7 +141,12 @@ impl VaultInterface for SqliteVault {
             return Err(VaultError::Inserting);
         }
 
-        Ok(())
+        Ok(WalletModel {
+            id,
+            name: input.name,
+            password: input.encrypted_pass,
+            seed: input.encrypted_seed,
+        })
     }
 
     async fn insert_account(&self, input: StoreAccountInput) -> VaultResult<()> {
