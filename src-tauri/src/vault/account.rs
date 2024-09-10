@@ -6,6 +6,7 @@ use bitcoin::{
     hex::DisplayHex,
     secp256k1, Address, CompressedPublicKey, Network as BitcoinNetwork, NetworkKind, PrivateKey,
 };
+use hex::decode;
 use thiserror::Error;
 
 const BITCOIN: &str = "Bitcoin";
@@ -161,12 +162,11 @@ impl AccountInputBuilder {
     pub fn build(&self, key: AESKey) -> AccountInputBuilderResult {
         let path = &self.path;
         let secp = secp256k1::Secp256k1::new();
-        let seed = decrypt(&key, self.encrypted_seed.as_bytes());
-
+        let seed = decode(&self.encrypted_seed).unwrap();
+        let seed = decrypt(&key, &seed);
         if let Err(err) = seed {
             return Err(AccountError::Building(err.to_string()));
         }
-
         let bitcoin_network = self.blockchain.to_bitcoin_network();
         let xprv = Xpriv::new_master(bitcoin_network, &seed.unwrap());
 
