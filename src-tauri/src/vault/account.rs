@@ -147,6 +147,10 @@ impl AccountInputBuilder {
         self.path = path;
     }
 
+    pub fn wallet_id(&mut self, id: &str) {
+        self.wallet_id = id.to_string();
+    }
+
     pub fn blockchain(&mut self, blockchain: Blockchain) {
         self.blockchain = blockchain;
     }
