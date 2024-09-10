@@ -13,7 +13,7 @@ const TESTNET: &str = "Testnet";
 const MAINNET: &str = "Mainnet";
 
 #[derive(Debug, Error)]
-enum AccountError {
+pub enum AccountError {
     #[error("Failed building")]
     Building,
     #[error("Path invalid")]
@@ -158,7 +158,7 @@ impl AccountInputBuilder {
         self.encrypted_seed = encrypted_seed;
     }
 
-    fn build(&self, key: AESKey) -> AccountInputBuilderResult {
+    pub fn build(&self, key: AESKey) -> AccountInputBuilderResult {
         let path = &self.path;
         let secp = secp256k1::Secp256k1::new();
         let seed = decrypt(&key, self.encrypted_seed.as_bytes());
