@@ -14,8 +14,8 @@ pub enum VaultError {
     Listing,
     #[error("Parsing error")]
     Parser,
-    #[error("Failed inserting")]
-    Inserting,
+    #[error("Failed inserting: {0}")]
+    Inserting(String),
     #[error("Failed removing")]
     Removing,
 }

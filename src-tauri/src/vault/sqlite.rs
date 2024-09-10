@@ -137,8 +137,7 @@ impl VaultInterface for SqliteVault {
             .await;
 
         if let Err(err) = result {
-            dbg!(err);
-            return Err(VaultError::Inserting);
+            return Err(VaultError::Inserting(err.to_string()));
         }
 
         Ok(WalletModel {
@@ -170,8 +169,8 @@ impl VaultInterface for SqliteVault {
             .execute(&self.0)
             .await;
 
-        if let Err(_) = res {
-            return Err(VaultError::Inserting);
+        if let Err(err) = res {
+            return Err(VaultError::Inserting(err.to_string()));
         }
 
         Ok(AccountModel::from(input))
