@@ -45,20 +45,24 @@ impl PathBuilder {
         self.network = network;
     }
 
-    pub fn network_kind(mut self, kind: NetworkKind) {
+    pub fn network_kind(mut self, kind: NetworkKind) -> Self {
         self.network_kind = kind;
+        self
     }
 
-    pub fn index(mut self, index: u32) {
+    pub fn index(mut self, index: u32) -> Self {
         self.index = index;
+        self
     }
 
-    pub fn account_index(mut self, index: u32) {
+    pub fn account_index(mut self, index: u32) -> Self {
         self.account_index = index;
+        self
     }
 
-    pub fn change_index(mut self, index: u32) {
+    pub fn change_index(mut self, index: u32) -> Self {
         self.change_index = index;
+        self
     }
 
     pub fn coin_type(&self) -> ChildNumber {
