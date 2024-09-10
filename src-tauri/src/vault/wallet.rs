@@ -135,7 +135,6 @@ impl WalletInputBuilder {
         let seed = self.mnemonic.to_seed(&self.password);
 
         let encrypted_seed = encrypt(&key, &seed)?;
-
         Ok(StoreWalletInput {
             encrypted_pass: password.to_string(),
             encrypted_seed: encrypted_seed.to_hex_string(Case::Lower),
