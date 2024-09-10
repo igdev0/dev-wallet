@@ -71,3 +71,36 @@ async fn can_find_wallet() {
     let wallet = vault.get_wallet_by_name(&wallet.name).await.unwrap();
     assert_eq!(wallet.name, name);
 }
+
+#[tokio::test]
+
+async fn can_list_all_wallets() {
+    let vault = SqliteVault::new(Some("sqlite::memory:")).await;
+    vault.migrate().await;
+    struct Input {
+        name: String,
+        password: String,
+    }
+    let inputs: Vec<Input> = vec![
+        Input {
+            name: "main".to_string(),
+            password: "mainpass".to_string(),
+        },
+        Input {
+            name: "second".to_string(),
+            password: "abcd".to_string(),
+        },
+    ];
+
+    for input in inputs.iter() {
+        let mut wallet = WalletInputBuilder::new();
+        wallet.name(&input.name);
+        wallet.password(&input.password);
+        let wallet = wallet.build().unwrap();
+        vault.insert_wallet(wallet).await.unwrap();
+    }
+
+    let wallets = vault.get_all_wallets().await.unwrap();
+
+    assert_eq!(wallets.len(), inputs.len());
+}
