@@ -9,7 +9,7 @@ use argon2::{
 };
 use thiserror::Error;
 
-use crate::utils::{encrypt, AESKey};
+use crate::utils::{encrypt, AESError, AESKey};
 
 #[derive(Debug)]
 pub struct WalletModel {
@@ -33,7 +33,7 @@ impl WalletModel {
     pub fn authenticate(&self, password: &str) -> AuthResult {
         let argon2 = Argon2::default();
         let parsed_password = PasswordHash::new(&self.password);
-        
+
         if let Err(err) = parsed_password {
             return Err(AuthError::Parser(err.to_string()));
         }
@@ -121,7 +121,7 @@ impl WalletInputBuilder {
         self.mnemonic.to_string()
     }
 
-    pub fn build(&self) -> StoreWalletInput {
+    pub fn build(&self) -> Result<StoreWalletInput, AESError> {
         let salt = SaltString::generate(&mut OsRng);
         let hasher = Argon2::default();
         let password = hasher
@@ -134,11 +134,13 @@ impl WalletInputBuilder {
 
         let seed = self.mnemonic.to_seed(&self.password);
 
-        StoreWalletInput {
+        let encrypted_seed = encrypt(&key, &seed)?;
+
+        Ok(StoreWalletInput {
             encrypted_pass: password.to_string(),
-            encrypted_seed: encrypt(&key, &seed).to_hex_string(Case::Lower),
+            encrypted_seed: encrypted_seed.to_hex_string(Case::Lower),
             name: self.name.to_string(),
-        }
+        })
     }
 }
 
@@ -167,7 +169,7 @@ mod tests {
         assert_eq!(res.password, "password"); // not encrypted
         assert!(res.mnemonic.to_string().len() > 0);
 
-        let wallet_input = res.build();
+        let wallet_input = res.build().unwrap();
 
         assert_eq!(wallet_input.name, "name");
         assert_ne!(wallet_input.encrypted_pass, "password"); // is encrypted now
@@ -189,7 +191,7 @@ mod tests {
         let res = WalletInputBuilder::from(mnemonic);
         assert!(res.mnemonic.to_string().len() > 0);
 
-        let wallet_input = res.build();
+        let wallet_input = res.build().unwrap();
 
         let model = WalletModel::from(wallet_input);
 
@@ -203,7 +205,7 @@ mod tests {
         let res = WalletInputBuilder::new();
         assert!(res.mnemonic.to_string().len() > 0);
 
-        let wallet_input = res.build();
+        let wallet_input = res.build().unwrap();
 
         let model = WalletModel::from(wallet_input);
 

@@ -44,7 +44,7 @@ async fn create_wallet(
     let vault = state.vault.lock().await;
     wallet.name(&name);
     wallet.password(&password);
-    let wallet = wallet.build();
+    let wallet = wallet.build().unwrap();
     let result = vault.insert_wallet(wallet).await;
 
     if let Err(err) = result {

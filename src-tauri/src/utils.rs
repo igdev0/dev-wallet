@@ -95,9 +95,10 @@ mod tests {
 
         let text = b"Hello world";
 
-        let encrypted_data = encrypt(&key, text);
+        let encrypted_data = encrypt(&key, text).unwrap();
 
-        let decrypted = decrypt(&key, &encrypted_data);
+        let decrypted = decrypt(&key, &encrypted_data).unwrap();
+
         println!("{}", &decrypted.to_hex_string(Case::Lower));
         let decrypted = decrypted.to_hex_string(Case::Lower);
         let text = text.to_hex_string(Case::Lower);

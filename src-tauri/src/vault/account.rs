@@ -14,8 +14,8 @@ const MAINNET: &str = "Mainnet";
 
 #[derive(Debug, Error)]
 pub enum AccountError {
-    #[error("Failed building")]
-    Building,
+    #[error("Failed building: {0}")]
+    Building(String),
     #[error("Path invalid")]
     Path,
     #[error("Failed deriving key form path")]
@@ -162,8 +162,13 @@ impl AccountInputBuilder {
         let path = &self.path;
         let secp = secp256k1::Secp256k1::new();
         let seed = decrypt(&key, self.encrypted_seed.as_bytes());
+
+        if let Err(err) = seed {
+            return Err(AccountError::Building(err.to_string()));
+        }
+
         let bitcoin_network = self.blockchain.to_bitcoin_network();
-        let xprv = Xpriv::new_master(bitcoin_network, &seed);
+        let xprv = Xpriv::new_master(bitcoin_network, &seed.unwrap());
 
         if let Err(_) = xprv {
             return Err(AccountError::Path);
@@ -186,7 +191,13 @@ impl AccountInputBuilder {
 
         let encrypted_path = &self.path.to_string();
         let encrypted_path = encrypted_path.as_bytes();
-        let encrypted_path = encrypt(&key, encrypted_path).to_hex_string(bitcoin::hex::Case::Lower);
+        let encrypted_path = encrypt(&key, encrypted_path);
+        if let Err(err) = encrypted_path {
+            return Err(AccountError::Building(err.to_string()));
+        }
+        let encrypted_path = encrypted_path
+            .unwrap()
+            .to_hex_string(bitcoin::hex::Case::Lower);
 
         Ok(StoreAccountInput {
             address: address.to_string(),
