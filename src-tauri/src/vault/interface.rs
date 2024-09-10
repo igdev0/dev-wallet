@@ -8,8 +8,8 @@ use super::{
 
 #[derive(Error, Debug)]
 pub enum VaultError {
-    #[error("Entity not found")]
-    NotFound,
+    #[error("Entity not found {0}")]
+    NotFound(String),
     #[error("Failed listing")]
     Listing,
     #[error("Parsing error")]

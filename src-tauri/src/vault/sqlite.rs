@@ -31,12 +31,10 @@ impl VaultInterface for SqliteVault {
             .fetch_one(&self.0)
             .await;
         if let Err(_) = res {
-            return Err(VaultError::NotFound);
+            return Err(VaultError::NotFound(id.to_string()));
         }
 
-        let entry = res.expect("Failed to unwrap account by id query");
-
-        SqliteVault::parse_account(&entry)
+        SqliteVault::parse_account(&res.unwrap())
     }
 
     async fn get_all_accounts(&self, wallet_id: &str) -> VaultResult<Vec<AccountModel>> {
@@ -64,12 +62,12 @@ impl VaultInterface for SqliteVault {
     }
 
     async fn get_wallet_by_id(&self, id: &str) -> VaultResult<WalletModel> {
-        let res = sqlx::query("SELECT * FROM accounts WHERE id = ?;")
+        let res = sqlx::query("SELECT * FROM wallets WHERE id = ?;")
             .bind(id)
             .fetch_one(&self.0)
             .await;
         if let Err(_) = res {
-            return Err(VaultError::NotFound);
+            return Err(VaultError::NotFound(id.to_string()));
         }
 
         let result = res.unwrap();
@@ -82,7 +80,7 @@ impl VaultInterface for SqliteVault {
             .fetch_one(&self.0)
             .await;
         if let Err(_) = res {
-            return Err(VaultError::NotFound);
+            return Err(VaultError::NotFound(name.to_string()));
         }
 
         let result = res.unwrap();
@@ -160,12 +158,12 @@ impl VaultInterface for SqliteVault {
         } = AccountModel::from(input.clone());
 
         let res = sqlx::query("INSERT into accounts (id, wallet_id, address, path, blockchain, network) values (?,?,?,?,?,?)")
-            .bind(id)
-            .bind(wallet_id)
-            .bind(address)
-            .bind(path)
-            .bind(blockchain)
-            .bind(network)
+            .bind(&id)
+            .bind(&wallet_id)
+            .bind(&address)
+            .bind(&path)
+            .bind(&blockchain)
+            .bind(&network)
             .execute(&self.0)
             .await;
 
@@ -173,7 +171,15 @@ impl VaultInterface for SqliteVault {
             return Err(VaultError::Inserting(err.to_string()));
         }
 
-        Ok(AccountModel::from(input))
+        Ok(AccountModel {
+            id,
+            address,
+            blockchain,
+            wallet_id,
+            network,
+            created_at: None,
+            path,
+        })
     }
 }
 
