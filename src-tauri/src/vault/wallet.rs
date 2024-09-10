@@ -23,8 +23,8 @@ pub struct WalletModel {
 pub enum AuthError {
     #[error("Authentication failed")]
     Failed,
-    #[error("Parser failed")]
-    Parser,
+    #[error("Parser failed {0}")]
+    Parser(String),
 }
 
 pub type AuthResult = Result<AESKey, AuthError>;
@@ -33,9 +33,9 @@ impl WalletModel {
     pub fn authenticate(&self, password: &str) -> AuthResult {
         let argon2 = Argon2::default();
         let parsed_password = PasswordHash::new(&self.password);
-
-        if let Err(_) = parsed_password {
-            return Err(AuthError::Parser);
+        
+        if let Err(err) = parsed_password {
+            return Err(AuthError::Parser(err.to_string()));
         }
 
         let parsed_password = parsed_password.unwrap();
