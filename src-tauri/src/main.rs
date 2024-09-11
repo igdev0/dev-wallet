@@ -4,7 +4,7 @@
 use dev_wallet::{
     sqlite::SqliteVault, vault_interface::VaultInterface, wallet::WalletInputBuilder,
 };
-// use serde_json::{json, Value};
+use serde_json::{json, Value};
 use std::sync::Arc;
 use tauri::{Manager, State};
 use tokio::sync::Mutex;
@@ -21,18 +21,29 @@ async fn generate_mnemonic(state: State<'_, AppState>) -> Result<String, String>
     let mut wallet = state.wallet.lock().await;
 
     wallet.regenerate_mnemonic();
-    // wallet
     Ok(wallet.mnemonic_as_string())
 }
 
-// #[tauri::command]
-// async fn authenticate(
-//     name: String,
-//     password: String,
-//     state: State<'_, AppState>,
-// ) -> Result<Value, String> {
-//     Ok(json!({}))
-// }
+#[tauri::command]
+async fn authenticate(
+    name: String,
+    password: String,
+    state: State<'_, AppState>,
+) -> Result<Value, String> {
+    let vault = state.vault.lock().await;
+    let wallet = vault.get_wallet_by_name(&name).await;
+    if let Err(err) = wallet {
+        return Err(err.to_string());
+    }
+    let wallet = wallet.unwrap();
+    let key = wallet.authenticate(&password);
+
+    if let Err(err) = key {
+        return Err(err.to_string());
+    }
+
+    Ok(wallet.to_json())
+}
 
 #[tauri::command]
 async fn create_wallet(
@@ -82,7 +93,7 @@ async fn main() {
         .invoke_handler(tauri::generate_handler![
             generate_mnemonic,
             create_wallet,
-            // authenticate,
+            authenticate,
             // create_account
         ])
         .run(tauri::generate_context!())
