@@ -1,11 +1,15 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+use bitcoin::{bip32::DerivationPath, key};
 use dev_wallet::{
-    sqlite::SqliteVault, vault_interface::VaultInterface, wallet::WalletInputBuilder,
+    account::AccountInputBuilder,
+    sqlite::SqliteVault,
+    vault_interface::VaultInterface,
+    wallet::{self, WalletInputBuilder},
 };
 use serde_json::{json, Value};
-use std::sync::Arc;
+use std::{str::FromStr, sync::Arc};
 use tauri::{Manager, State};
 use tokio::sync::Mutex;
 
@@ -65,15 +69,50 @@ async fn create_wallet(
     Ok(result.unwrap().to_json())
 }
 
-// #[tauri::command]
-// async fn create_account(
-//     path: String,
-//     wallet_id: String,
-//     password: String,
-//     state: State<'_, AppState>,
-// ) -> Result<Value, String> {
-//     Ok(json!({}))
-// }
+#[tauri::command]
+async fn create_account(
+    path: String,
+    wallet_id: String,
+    password: String,
+    state: State<'_, AppState>,
+) -> Result<Value, String> {
+    let vault = state.vault.lock().await;
+    let wallet = vault.get_wallet_by_id(&wallet_id).await;
+
+    if let Err(err) = wallet {
+        return Err(err.to_string());
+    }
+
+    let wallet = wallet.unwrap();
+    let key = wallet.authenticate(&password);
+
+    if let Err(err) = key {
+        return Err(err.to_string());
+    }
+
+    let path = DerivationPath::from_str(&path);
+
+    if let Err(err) = path {
+        return Err(err.to_string());
+    }
+
+    let mut account = AccountInputBuilder::from(wallet);
+    account.path(path.unwrap());
+
+    let account = account.build(key.unwrap());
+
+    if let Err(err) = account {
+        return Err(err.to_string());
+    }
+
+    let account = vault.insert_account(account.unwrap()).await;
+
+    if let Err(err) = account {
+        return Err(err.to_string());
+    }
+
+    Ok(account.unwrap().to_json())
+}
 
 #[async_std::main]
 async fn main() {
