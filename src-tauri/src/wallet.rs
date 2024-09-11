@@ -7,6 +7,7 @@ use argon2::{
     password_hash::{PasswordHash, PasswordHasher, SaltString},
     Argon2, PasswordVerifier,
 };
+use serde_json::{json, map::VacantEntry, Value};
 use thiserror::Error;
 
 use crate::utils::{encrypt, AESError, AESKey};
@@ -50,6 +51,13 @@ impl WalletModel {
 
         key.copy_from_slice(&hash.as_bytes()[..32]);
         Ok(key)
+    }
+
+    pub fn to_json(&self) -> Value {
+        json!({
+            "id": self.id,
+            "name": self.name
+        })
     }
 }
 
