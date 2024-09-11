@@ -112,6 +112,7 @@ async fn create_account(
     Ok(account.unwrap().to_json())
 }
 
+#[tauri::command]
 #[async_std::main]
 async fn main() {
     let vault = SqliteVault::new(Some("sqlite://database.db")).await;

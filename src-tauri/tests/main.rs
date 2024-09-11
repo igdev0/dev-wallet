@@ -135,3 +135,21 @@ async fn can_list_all_accounts_for_wallet() {
 
     assert_eq!(res.len(), paths.len());
 }
+
+#[tokio::test]
+async fn can_remove_wallet() {
+    let vault = SqliteVault::new(Some("sqlite::memory:")).await;
+    vault.migrate().await;
+
+    let mut wallet = WalletInputBuilder::new();
+
+    wallet.name("main");
+    wallet.password("password");
+    let wallet = wallet.build().unwrap();
+
+    let wallet = vault.insert_wallet(wallet).await.unwrap();
+
+    let result = vault.remove_account_by_id(&wallet.id).await;
+
+    assert!(result.is_ok() == true);
+}
