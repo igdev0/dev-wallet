@@ -8,8 +8,8 @@ use std::ops::Deref;
 
 use super::{
     account::{AccountModel, Blockchain, Network, StoreAccountInput},
-    interface::{VaultError, VaultInterface, VaultResult},
-    wallet::{self, StoreWalletInput, WalletModel},
+    vault_interface::{VaultError, VaultInterface, VaultResult},
+    wallet::{StoreWalletInput, WalletModel},
 };
 
 pub type DatabasePool = Pool<Sqlite>;

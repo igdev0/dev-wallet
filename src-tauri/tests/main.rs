@@ -1,10 +1,8 @@
 use dev_wallet::*;
 use path_builder::PathBuilder;
 use tokio;
-use vault::{
-    account::{AccountInputBuilder, AccountModel, StoreAccountInput},
-    interface::VaultInterface,
-    sqlite::SqliteVault,
+use {
+    account::AccountInputBuilder, sqlite::SqliteVault, vault_interface::VaultInterface,
     wallet::WalletInputBuilder,
 };
 

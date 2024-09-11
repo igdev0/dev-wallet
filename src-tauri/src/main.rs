@@ -1,8 +1,8 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-use dev_wallet::vault::{
-    interface::VaultInterface, sqlite::SqliteVault, wallet::WalletInputBuilder,
+use dev_wallet::{
+    sqlite::SqliteVault, vault_interface::VaultInterface, wallet::WalletInputBuilder,
 };
 // use serde_json::{json, Value};
 use std::sync::Arc;
