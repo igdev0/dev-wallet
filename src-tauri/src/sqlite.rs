@@ -43,8 +43,8 @@ impl VaultInterface for SqliteVault {
             .fetch_all(&self.0)
             .await;
 
-        if let Err(_) = res {
-            return Err(VaultError::Listing);
+        if let Err(err) = res {
+            return Err(VaultError::Listing(err.to_string()));
         }
 
         let results = res.unwrap();
@@ -115,8 +115,8 @@ impl VaultInterface for SqliteVault {
             .execute(&self.0)
             .await;
 
-        if let Err(_) = result {
-            return Err(VaultError::Removing);
+        if let Err(err) = result {
+            return Err(VaultError::Removing(err.to_string()));
         }
 
         Ok(())
@@ -140,8 +140,8 @@ impl VaultInterface for SqliteVault {
         .bind(id)
         .execute(&self.0)
         .await;
-        if let Err(_) = result {
-            return Err(VaultError::Removing);
+        if let Err(err) = result {
+            return Err(VaultError::Removing(err.to_string()));
         }
         Ok(())
     }
@@ -252,13 +252,13 @@ impl SqliteVault {
 
         let blockchain = Blockchain::from_string(&blockchain);
 
-        if let Err(_) = blockchain {
-            return Err(VaultError::Parser);
+        if let Err(err) = blockchain {
+            return Err(VaultError::Parser(err.to_string()));
         }
 
         let network = Network::from_string(&network);
-        if let Err(_) = network {
-            return Err(VaultError::Parser);
+        if let Err(err) = network {
+            return Err(VaultError::Parser(err.to_string()));
         }
 
         Ok(AccountModel {

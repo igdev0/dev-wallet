@@ -10,14 +10,14 @@ use super::{
 pub enum VaultError {
     #[error("Entity not found {0}")]
     NotFound(String),
-    #[error("Failed listing")]
-    Listing,
-    #[error("Parsing error")]
-    Parser,
+    #[error("Failed listing: {0}")]
+    Listing(String),
+    #[error("Parsing error, details {0}")]
+    Parser(String),
     #[error("Failed inserting: {0}")]
     Inserting(String),
-    #[error("Failed removing")]
-    Removing,
+    #[error("Failed removing: {0}")]
+    Removing(String),
 }
 
 pub type VaultResult<T> = Result<T, VaultError>;
