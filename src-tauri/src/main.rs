@@ -190,7 +190,7 @@ async fn list_wallets(state: State<'_, AppState>) -> Result<Value, String> {
 #[async_std::main]
 async fn main() {
     let vault = SqliteVault::new(Some("sqlite://database.db")).await;
-    vault.migrate().await;
+    vault.migrate().await.unwrap();
 
     let app_state = AppState {
         wallet: Arc::new(Mutex::new(WalletInputBuilder::new())),
