@@ -6,7 +6,7 @@ use dev_wallet::{
     account::AccountInputBuilder, sqlite::SqliteVault, vault_interface::VaultInterface,
     wallet::WalletInputBuilder,
 };
-use serde_json::Value;
+use serde_json::{json, Value};
 use std::{str::FromStr, sync::Arc};
 use tauri::{Manager, State};
 use tokio::sync::Mutex;
@@ -113,6 +113,15 @@ async fn create_account(
 }
 
 #[tauri::command]
+async fn remove_wallet(id: String, state: State<'_, AppState>) -> Result<Value, String> {
+    let vault = state.vault.lock().await;
+    let res = vault.remove_wallet_by_id(&id).await;
+    if let Err(err) = res {
+        return Err(err.to_string());
+    }
+    Ok(json!({"success": true}))
+}
+
 #[async_std::main]
 async fn main() {
     let vault = SqliteVault::new(Some("sqlite://database.db")).await;
@@ -132,7 +141,8 @@ async fn main() {
             generate_mnemonic,
             create_wallet,
             authenticate,
-            create_account
+            create_account,
+            remove_wallet
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
