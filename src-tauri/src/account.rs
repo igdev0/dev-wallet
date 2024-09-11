@@ -10,6 +10,7 @@ use bitcoin::{
     secp256k1, Address, CompressedPublicKey, Network as BitcoinNetwork, NetworkKind, PrivateKey,
 };
 use hex::decode;
+use serde_json::{json, Value};
 use thiserror::Error;
 
 use super::wallet::WalletModel;
@@ -114,6 +115,16 @@ impl From<StoreAccountInput> for AccountModel {
             blockchain: value.blockchain.to_string(),
             network: value.network.to_string(),
         }
+    }
+}
+
+impl AccountModel {
+    pub fn to_json(&self) -> Value {
+        json!({
+            "id": self.id,
+            "address": self.address,
+            "network": self.network
+        })
     }
 }
 
