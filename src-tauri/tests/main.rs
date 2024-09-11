@@ -16,7 +16,7 @@ async fn can_create_wallet() {
     let wallet = wallet.build().unwrap();
     let name = wallet.name.clone();
     let vault = SqliteVault::new(Some("sqlite::memory:")).await;
-    vault.migrate().await;
+    vault.migrate().await.unwrap();
     vault.insert_wallet(wallet).await.unwrap();
 
     let result_wallet = vault.get_wallet_by_name(&name).await.unwrap();
@@ -35,7 +35,7 @@ async fn can_create_account() {
     let wallet = wallet.build().unwrap();
     let name = wallet.name.clone();
     let vault = SqliteVault::new(Some("sqlite::memory:")).await;
-    vault.migrate().await;
+    vault.migrate().await.unwrap();
     vault.insert_wallet(wallet).await.unwrap();
 
     let result_wallet = vault.get_wallet_by_name(&name).await.unwrap();
@@ -55,7 +55,7 @@ async fn can_create_account() {
 
 async fn can_find_wallet() {
     let vault = SqliteVault::new(Some("sqlite::memory:")).await;
-    vault.migrate().await;
+    vault.migrate().await.unwrap();
 
     let name = "main";
     let password = "password123";
@@ -77,7 +77,7 @@ async fn can_find_wallet() {
 
 async fn can_list_all_wallets() {
     let vault = SqliteVault::new(Some("sqlite::memory:")).await;
-    vault.migrate().await;
+    vault.migrate().await.unwrap();
     struct Input {
         name: String,
         password: String,
@@ -109,7 +109,7 @@ async fn can_list_all_wallets() {
 #[tokio::test]
 async fn can_list_all_accounts_for_wallet() {
     let vault = SqliteVault::new(Some("sqlite::memory:")).await;
-    vault.migrate().await;
+    vault.migrate().await.unwrap();
 
     let mut wallet = WalletInputBuilder::new();
 
@@ -139,7 +139,7 @@ async fn can_list_all_accounts_for_wallet() {
 #[tokio::test]
 async fn can_remove_wallet() {
     let vault = SqliteVault::new(Some("sqlite::memory:")).await;
-    vault.migrate().await;
+    vault.migrate().await.unwrap();
 
     let mut wallet = WalletInputBuilder::new();
 
@@ -163,7 +163,7 @@ async fn can_remove_wallet() {
 #[tokio::test]
 async fn can_remove_accounts() {
     let vault = SqliteVault::new(Some("sqlite::memory:")).await;
-    vault.migrate().await;
+    vault.migrate().await.unwrap();
 
     let mut wallet = WalletInputBuilder::new();
 

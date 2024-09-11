@@ -18,6 +18,8 @@ pub enum VaultError {
     Inserting(String),
     #[error("Failed removing: {0}")]
     Removing(String),
+    #[error("Failed migrating, cause: {0}")]
+    Migrating(String)
 }
 
 pub type VaultResult<T> = Result<T, VaultError>;

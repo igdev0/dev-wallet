@@ -272,7 +272,13 @@ impl SqliteVault {
         })
     }
 
-    pub async fn migrate(&self) {
-        sqlx::migrate!().run(&self.0).await.unwrap()
+    pub async fn migrate(&self) -> Result<(), VaultError> {
+        let status = sqlx::migrate!().run(&self.0).await;
+
+        if let Err(err) = status {
+            return Err(VaultError::Migrating(err.to_string()));
+        }
+
+        Ok(())
     }
 }
