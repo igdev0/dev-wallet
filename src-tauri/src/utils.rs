@@ -1,5 +1,4 @@
 use bip39::Mnemonic;
-use bitcoin::hex::{Case, DisplayHex};
 use rand::RngCore;
 use rand_core::{self, OsRng};
 
