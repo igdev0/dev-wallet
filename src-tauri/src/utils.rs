@@ -1,25 +1,9 @@
-use bip39::Mnemonic;
-use rand::RngCore;
-use rand_core::{self, OsRng};
-
 use aes_gcm::aead::generic_array::GenericArray;
 use aes_gcm::aead::{Aead, KeyInit};
 use aes_gcm::{AeadCore, Aes256Gcm, Nonce};
-use thiserror::Error; // Or `Aes128Gcm`
-
-pub fn generate_mnemonic() -> Result<Mnemonic, bip39::Error> {
-    // 1. Generate entropy (for 24 mnemonic words)
-    // 2. Generate checksum (sha256 entrophy and subtract )
-    // 3. Add the checksum to the entropy
-    // 4. Segmentate the entropy in 24 segments
-    // 5. Generate the seed based
-
-    let mut entropy = [0u8; 32];
-    let mut rng = OsRng;
-    rng.fill_bytes(&mut entropy);
-    Mnemonic::from_entropy(&entropy)
-}
-
+use bitcoin::hex::{Case, DisplayHex};
+use rand_core::{self, OsRng};
+use thiserror::Error;
 #[derive(Error, Debug)]
 pub enum AESError {
     #[error("Failed to encrypt: {0}")]
