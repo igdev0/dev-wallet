@@ -21,8 +21,8 @@ pub struct WalletModel {
 
 #[derive(Error, Debug)]
 pub enum AuthError {
-    #[error("Authentication failed")]
-    Failed,
+    #[error("Authentication failed: {0}")]
+    Failed(String),
     #[error("Parser failed {0}")]
     Parser(String),
 }
@@ -41,8 +41,8 @@ impl WalletModel {
         let parsed_password = parsed_password.unwrap();
 
         let auth_result = argon2.verify_password(password.as_bytes(), &parsed_password);
-        if let Err(_) = auth_result {
-            return Err(AuthError::Failed);
+        if let Err(err) = auth_result {
+            return Err(AuthError::Failed(err.to_string()));
         }
 
         let mut key = [0u8; 32];
