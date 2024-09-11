@@ -133,7 +133,7 @@ async fn main() {
             generate_mnemonic,
             create_wallet,
             authenticate,
-            // create_account
+            create_account
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
