@@ -136,6 +136,31 @@ async fn remove_wallet(
     Ok(json!({"success": true}))
 }
 
+#[tauri::command]
+async fn remove_account(
+    id: String,
+    wallet_id: String,
+    password: String,
+    state: State<'_, AppState>,
+) -> Result<Value, String> {
+    let vault = state.vault.lock().await;
+    let wallet = vault.get_wallet_by_id(&wallet_id).await;
+    if let Err(err) = wallet {
+        return Err(err.to_string());
+    }
+    let auth_res = wallet.unwrap().authenticate(&password);
+
+    if let Err(err) = auth_res {
+        return Err(err.to_string());
+    }
+
+    let res = vault.remove_account_by_id(&id).await;
+    if let Err(err) = res {
+        return Err(err.to_string());
+    }
+    Ok(json!({"success": true}))
+}
+
 #[async_std::main]
 async fn main() {
     let vault = SqliteVault::new(Some("sqlite://database.db")).await;
@@ -157,6 +182,7 @@ async fn main() {
             authenticate,
             create_account,
             remove_wallet,
+            remove_account,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
