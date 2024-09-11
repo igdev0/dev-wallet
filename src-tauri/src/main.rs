@@ -113,8 +113,22 @@ async fn create_account(
 }
 
 #[tauri::command]
-async fn remove_wallet(id: String, state: State<'_, AppState>) -> Result<Value, String> {
+async fn remove_wallet(
+    id: String,
+    password: String,
+    state: State<'_, AppState>,
+) -> Result<Value, String> {
     let vault = state.vault.lock().await;
+    let wallet = vault.get_wallet_by_id(&id).await;
+    if let Err(err) = wallet {
+        return Err(err.to_string());
+    }
+    let auth_res = wallet.unwrap().authenticate(&password);
+
+    if let Err(err) = auth_res {
+        return Err(err.to_string());
+    }
+
     let res = vault.remove_wallet_by_id(&id).await;
     if let Err(err) = res {
         return Err(err.to_string());
@@ -142,7 +156,7 @@ async fn main() {
             create_wallet,
             authenticate,
             create_account,
-            remove_wallet
+            remove_wallet,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
