@@ -109,20 +109,23 @@ impl WalletInputBuilder {
         }
     }
 
-    pub fn name(&mut self, name: &str) {
-        self.name = name.to_string()
+    pub fn name(&mut self, name: &str) -> &mut Self {
+        self.name = name.to_string();
+        self
     }
 
-    pub fn password(&mut self, password: &str) {
-        self.password = password.to_string()
+    pub fn password(&mut self, password: &str) -> &mut Self {
+        self.password = password.to_string();
+        self
     }
 
-    pub fn regenerate_mnemonic(&mut self) {
+    pub fn regenerate_mnemonic(&mut self) -> &mut Self {
         let mut entropy = [0u8; 32];
         let mut rng = OsRng;
         rng.fill_bytes(&mut entropy);
 
         self.mnemonic = Mnemonic::from_entropy(&entropy).expect("Mnemonic generation fail");
+        self
     }
 
     pub fn mnemonic_as_string(&self) -> String {
