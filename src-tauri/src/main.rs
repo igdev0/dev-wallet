@@ -1,14 +1,12 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-use bitcoin::{bip32::DerivationPath, key};
+use bitcoin::bip32::DerivationPath;
 use dev_wallet::{
-    account::AccountInputBuilder,
-    sqlite::SqliteVault,
-    vault_interface::VaultInterface,
-    wallet::{self, WalletInputBuilder},
+    account::AccountInputBuilder, sqlite::SqliteVault, vault_interface::VaultInterface,
+    wallet::WalletInputBuilder,
 };
-use serde_json::{json, Value};
+use serde_json::Value;
 use std::{str::FromStr, sync::Arc};
 use tauri::{Manager, State};
 use tokio::sync::Mutex;
