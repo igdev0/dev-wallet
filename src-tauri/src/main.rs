@@ -50,7 +50,7 @@ async fn create_wallet(
     name: String,
     password: String,
     state: State<'_, AppState>,
-) -> Result<String, String> {
+) -> Result<Value, String> {
     let mut wallet = state.wallet.lock().await;
     let vault = state.vault.lock().await;
     wallet.name(&name);
@@ -62,7 +62,7 @@ async fn create_wallet(
         return Err(err.to_string());
     }
 
-    Ok("success".to_string())
+    Ok(result.unwrap().to_json())
 }
 
 // #[tauri::command]
