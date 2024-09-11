@@ -176,6 +176,17 @@ async fn list_accounts(wallet_id: String, state: State<'_, AppState>) -> Result<
         .collect())
 }
 
+#[tauri::command]
+async fn list_wallets(state: State<'_, AppState>) -> Result<Value, String> {
+    let vault = state.vault.lock().await;
+    let wallets = vault.get_all_wallets().await;
+    if let Err(err) = wallets {
+        return Err(err.to_string());
+    }
+
+    Ok(wallets.unwrap().iter().map(|item| item.to_json()).collect())
+}
+
 #[async_std::main]
 async fn main() {
     let vault = SqliteVault::new(Some("sqlite://database.db")).await;
@@ -198,7 +209,8 @@ async fn main() {
             create_account,
             remove_wallet,
             remove_account,
-            list_accounts
+            list_accounts,
+            list_wallets
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
