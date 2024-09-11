@@ -40,7 +40,6 @@ pub struct AccountModel {
 }
 
 #[derive(Debug, Default, Clone, Copy)]
-
 pub enum Blockchain {
     #[default]
     Bitcoin,
