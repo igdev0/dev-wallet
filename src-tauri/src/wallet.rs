@@ -7,7 +7,7 @@ use argon2::{
     password_hash::{PasswordHash, PasswordHasher, SaltString},
     Argon2, PasswordVerifier,
 };
-use serde_json::{json, map::VacantEntry, Value};
+use serde_json::{json, Value};
 use thiserror::Error;
 
 use crate::utils::{encrypt, AESError, AESKey};
