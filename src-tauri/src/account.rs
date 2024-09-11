@@ -22,10 +22,10 @@ const MAINNET: &str = "Mainnet";
 pub enum AccountError {
     #[error("Failed building: {0}")]
     Building(String),
-    #[error("Path invalid")]
-    Path,
-    #[error("Failed deriving key form path")]
-    Derivation,
+    #[error("Path invalid: {0}")]
+    Path(String),
+    #[error("Failed deriving key form path: {0}")]
+    Derivation(String),
 }
 
 #[derive(Default, Debug)]
@@ -191,14 +191,14 @@ impl AccountInputBuilder {
         let bitcoin_network = self.blockchain.to_bitcoin_network();
         let xprv = Xpriv::new_master(bitcoin_network, &seed.unwrap());
 
-        if let Err(_) = xprv {
-            return Err(AccountError::Path);
+        if let Err(err) = xprv {
+            return Err(AccountError::Path(err.to_string()));
         }
 
         let xprv = xprv.unwrap().derive_priv(&secp, path);
 
-        if let Err(_) = xprv {
-            return Err(AccountError::Derivation);
+        if let Err(err) = xprv {
+            return Err(AccountError::Derivation(err.to_string()));
         }
 
         let xprv = xprv.unwrap();
