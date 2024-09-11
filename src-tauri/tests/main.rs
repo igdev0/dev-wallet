@@ -149,9 +149,15 @@ async fn can_remove_wallet() {
 
     let wallet = vault.insert_wallet(wallet).await.unwrap();
 
-    let result = vault.remove_account_by_id(&wallet.id).await;
+    let account = AccountInputBuilder::from(wallet.clone());
+    let key = wallet.authenticate("password").unwrap();
+    let account = account.build(key).unwrap();
+    let account = vault.insert_account(account).await.unwrap();
 
+    let result = vault.remove_wallet_by_id(&wallet.id).await;
+    let account = vault.get_account_by_id(&account.id).await;
     assert!(result.is_ok() == true);
+    assert!(account.is_err() == true);
 }
 
 #[tokio::test]
