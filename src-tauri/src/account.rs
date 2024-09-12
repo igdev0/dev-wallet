@@ -123,7 +123,8 @@ impl AccountModel {
         json!({
             "id": self.id,
             "address": self.address,
-            "network": self.network
+            "network": self.network,
+            "blockchain": self.blockchain,
         })
     }
 }
