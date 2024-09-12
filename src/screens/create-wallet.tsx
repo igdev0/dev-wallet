@@ -251,7 +251,7 @@ export default function MnemonicScreen() {
               <Check />
             </Icon>
           </Button>
-          <Text>OR</Text>
+          <Text>Or</Text>
           <InternalLink to="/authenticate" variant="teal">
             Authenticate instead
           </InternalLink>
