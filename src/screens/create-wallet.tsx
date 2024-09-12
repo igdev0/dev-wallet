@@ -51,6 +51,8 @@ export default function MnemonicScreen() {
   const [state, setState] = useState<State>(
     JSON.parse(JSON.stringify(INITIAL_STATE)),
   );
+
+  // mnemonics.data?.replace(" ", ", ");
   const handleSubmit = async (event) => {
     event.preventDefault();
     if (state.name.length === 0) {
@@ -180,7 +182,7 @@ export default function MnemonicScreen() {
                 </Flex>
               </Flex>
               <Code position="relative" p={2} _light={{ bg: "gray.200" }}>
-                {mnemonics.data?.toString()}
+                {mnemonics.data?.split(" ").join(", ")}
               </Code>
               <Spacer mt={2} />
               <FormControl
