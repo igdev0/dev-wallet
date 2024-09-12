@@ -25,7 +25,7 @@ export default function useAuthenticate() {
       },
       onSuccess: (data) => {
         useAppState.getState().setAuthenticated(data.name);
-        navigate(`accounts/${data.id}`);
+        navigate(`/accounts/${data.id}`);
       },
       onError: (error, variables, context) => {
         toast({
