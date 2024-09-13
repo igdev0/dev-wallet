@@ -5,6 +5,7 @@ import { invoke } from "@tauri-apps/api";
 type DeleteAccountInput = {
   walletID: string;
   accountID: string;
+  password: string;
 };
 
 type DeleteAccountResponse = {
@@ -19,6 +20,7 @@ export default function useDeleteAccount() {
       return await invoke("delete_account", {
         walletId: input.walletID,
         accountId: input.accountID,
+        password: input.password,
       });
     },
     {
