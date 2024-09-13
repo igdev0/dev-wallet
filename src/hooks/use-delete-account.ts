@@ -17,7 +17,7 @@ export default function useDeleteAccount() {
   return useMutation<DeleteAccountResponse, string, DeleteAccountInput>(
     "delete-wallet",
     async (input) => {
-      return await invoke("delete_account", {
+      return await invoke("remove_account", {
         walletId: input.walletID,
         accountId: input.accountID,
         password: input.password,
