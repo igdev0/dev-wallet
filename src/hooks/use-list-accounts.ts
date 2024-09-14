@@ -34,6 +34,6 @@ export default function useListAccounts(enabled = true) {
       }
       return await invoke("list_accounts", { walletId: wallet_id });
     },
-    { enabled },
+    { enabled, suspense: true, useErrorBoundary: true, retry: false },
   );
 }
