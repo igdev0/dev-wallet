@@ -63,7 +63,7 @@ To start the application on your platform:
 
 ## License
 
-This project is licensed under the [Your License Name] - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT - see the [LICENSE](LICENSE) file for details.
 
 ## Contact
 
