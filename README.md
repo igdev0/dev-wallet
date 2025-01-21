@@ -1,5 +1,5 @@
 # Dev Wallet
-The goal of this project is to develop a wallet which empowers developers to develop dapps faster. The features of this project are still in development, these are the initial features which I planned to implement:
+The goal of this project is to develop a wallet which empowers developers to develop dapps faster. The features of this project are still in development, the initial features planned to implement:
 - **Authentication**: Pretty straight forward, it will enable you to authenticate on your wallet, via some GUI;
 - **Wallet management**: Thsi feature will let you to create and delete wallets (and associated accounts) and update certain things like wallet name, via some GUI;
 - **Account management** : This feature will let you derrive accounts from the wallet seed, via some GUI;
