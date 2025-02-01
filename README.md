@@ -67,4 +67,4 @@ This project is licensed under the MIT - see the [LICENSE](LICENSE) file for det
 
 ## Contact
 
-For any inquiries or feedback, please open an issue on GitHub.
+For any feedback, please open an issue on GitHub.
